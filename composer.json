@@ -1,0 +1,30 @@
+{
+    "name": "lyrasoft/toolkit",
+    "description": "LYRASOFY development toolkit",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Lyrasoft\\Toolkit\\": "src/",
+            "Windwalker\\": "src/Windwalker/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Simon Asika",
+            "email": "asika32764@gmail.com"
+        }
+    ],
+    "minimum-stability": "beta",
+    "require": {},
+    "extra": {
+        "windwalker":{
+            "packages": [
+                "Lyrasoft\\Toolkit\\ToolkitPackage"
+            ],
+            "modules": [
+
+            ]
+        }
+    }
+}
