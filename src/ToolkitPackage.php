@@ -9,7 +9,7 @@
 
 declare(strict_types=1);
 
-namespace Lyrasoft\Tookit;
+namespace Lyrasoft\Toolkit;
 
 use Windwalker\Core\Package\AbstractPackage;
 use Windwalker\Core\Package\PackageInstaller;
@@ -21,5 +21,10 @@ class ToolkitPackage extends AbstractPackage
 {
     public function install(PackageInstaller $installer): void
     {
+        $installer->installFiles(
+            __DIR__ . '/../.ide/phpstorm/idea/*',
+            '.idea/',
+            'ide'
+        );
     }
 }
