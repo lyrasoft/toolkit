@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Lyrasoft\Toolkit\Spreadsheet;
 
 use Lyrasoft\Toolkit\Spreadsheet\Spout\ColumnStyle;
+use MyCLabs\Enum\Enum;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\AbstractWriterMultiSheets;
@@ -19,6 +20,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use OpenSpout\Writer;
 use Windwalker\Http\Response\AttachmentResponse;
 use Windwalker\Utilities\Arr;
+use function Windwalker\value;
 
 /**
  * The SpoutWriter class.
@@ -41,6 +43,13 @@ class SpoutWriter extends AbstractSpreadsheetWriter
     protected array $rows = [];
 
     protected ?Writer\Common\AbstractOptions $writerOptions = null;
+
+    public function __construct(array $options = [])
+    {
+        parent::__construct($options);
+
+        $this->prepareSheetInfo(0);
+    }
 
     protected function configureOptions(OptionsResolver $resolver): void
     {
@@ -120,22 +129,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
         parent::configureColumns($handler);
 
-        $this->prepareSheetInfo(0);
 
-        foreach (array_values($this->columnItems) as $i => $columnItem) {
-            $this->writerOptions->setColumnWidth($columnItem['width'], $i + 1);
-        }
-
-        $this->addRow(
-            function () {
-                foreach ($this->columnItems as $i => $columnItem) {
-                    $this->setRowCell(
-                        $i,
-                        $columnItem['title']
-                    );
-                }
-            }
-        );
 
         $this->columnItems = [];
     }
@@ -175,6 +169,10 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
     protected function setValueToCell(object $cell, mixed $value, ?string $format = null): Cell
     {
+        if ($value instanceof Enum || $value instanceof \UnitEnum) {
+            $value = value($value);
+        }
+
         /** @var \Closure $cell */
         return $cell($value);
     }
@@ -256,7 +254,21 @@ class SpoutWriter extends AbstractSpreadsheetWriter
     public function writeDataToFile(): Writer\AbstractWriter
     {
         $driver = $this->getDriver();
+        
+        $cols = [];
 
+        foreach (array_values($this->columnItems) as $i => $columnItem) {
+            $cols[] = $columnItem['title'];
+            
+            $this->writerOptions->setColumnWidth($columnItem['width'], $i + 1);
+        }
+
+        // Add column row
+        $row = Row::fromValues($cols);
+        
+        $driver->addRow($row);
+
+        // Add rows
         $driver->addRows($this->rows);
 
         return $driver;
