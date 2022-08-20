@@ -1,0 +1,280 @@
+<?php
+
+/**
+ * Part of earth project.
+ *
+ * @copyright  Copyright (C) 2022 __ORGANIZATION__.
+ * @license    __LICENSE__
+ */
+
+declare(strict_types=1);
+
+namespace Lyrasoft\Toolkit\Spreadsheet;
+
+use Lyrasoft\Toolkit\Spreadsheet\Spout\ColumnStyle;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\AbstractWriterMultiSheets;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use OpenSpout\Writer;
+use Windwalker\Http\Response\AttachmentResponse;
+use Windwalker\Utilities\Arr;
+
+/**
+ * The SpoutWriter class.
+ *
+ * @extends AbstractSpreadsheetWriter<Writer\AbstractWriter>
+ *
+ * @method Writer\AbstractWriter getDriver()
+ * @method ColumnStyle addColumn(string $alias, string $title = '', array $options = [])
+ * @method ColumnStyle setColumn(string|int $col, string $alias, string $title = '', array $options = [])
+ * @method Row addRow(?callable $handler = null)
+ * @method Cell setRowCell(string $alias, mixed $value, ?string $format = null)
+ */
+class SpoutWriter extends AbstractSpreadsheetWriter
+{
+    protected array $columnItems = [];
+
+    /**
+     * @var Row[]
+     */
+    protected array $rows = [];
+
+    protected ?Writer\Common\AbstractOptions $writerOptions = null;
+
+    protected function configureOptions(OptionsResolver $resolver): void
+    {
+        parent::configureOptions($resolver);
+
+        $resolver->define('format')
+            ->allowedTypes('string')
+            ->allowedValues(
+                'csv',
+                'xlsx',
+                'ods'
+            )
+            ->default('xlsx');
+    }
+
+    public function useFormat(string $format): static
+    {
+        $this->setOption('format', $format);
+
+        return $this;
+    }
+
+    protected function setActiveSheetToDriver(int|string $indexOrName): Writer\Common\Entity\Sheet
+    {
+        $driver = $this->getDriver();
+
+        if ($driver instanceof AbstractWriterMultiSheets) {
+            $sheets = $driver->getSheets();
+
+            if (is_string($indexOrName)) {
+                $currentSheet = Arr::findFirst(
+                    $sheets,
+                    fn (Writer\Common\Entity\Sheet $sheet) => $sheet->getName() === $indexOrName
+                );
+
+                if ($currentSheet) {
+                    return $currentSheet;
+                }
+
+                return $driver->addNewSheetAndMakeItCurrent()->setName($indexOrName);
+            }
+
+            $sheet = $sheets[$indexOrName];
+            $driver->setCurrentSheet($sheet);
+
+            return $driver->getCurrentSheet();
+        }
+
+        throw new \LogicException('Spout CSV not support multi-sheets');
+    }
+
+    public function getActiveSheetIndex(): int
+    {
+        if (!$this->driver) {
+            return 0;
+        }
+
+        $driver = $this->getDriver();
+
+        if ($driver instanceof AbstractWriterMultiSheets) {
+            return $driver->getCurrentSheet()->getIndex();
+        }
+
+        return 0;
+    }
+
+    public function configureColumns(?callable $handler): void
+    {
+        if ($this->driver) {
+            throw new \LogicException(
+                'Spout must configure columns before Writer created.'
+            );
+        }
+
+        $this->columnItems = [];
+        $this->writerOptions = $this->getWriterOptions();
+
+        parent::configureColumns($handler);
+
+        $this->prepareSheetInfo(0);
+
+        foreach (array_values($this->columnItems) as $i => $columnItem) {
+            $this->writerOptions->setColumnWidth($columnItem['width'], $i + 1);
+        }
+
+        $this->addRow(
+            function () {
+                foreach ($this->columnItems as $i => $columnItem) {
+                    $this->setRowCell(
+                        $i,
+                        $columnItem['title']
+                    );
+                }
+            }
+        );
+
+        $this->columnItems = [];
+    }
+
+    protected function prepareColumn(int $colIndex, string $alias, string $title = '', array $options = []): object
+    {
+        $this->columnItems[$alias] = [
+            'title' => $title,
+            'width' => 10,
+            'index' => count($this->columnItems)
+        ];
+
+        $setWidth = function (int $width) use ($alias) {
+            $this->columnItems[$alias]['width'] = $width;
+        };
+
+        return new ColumnStyle($setWidth);
+    }
+
+    public function useRow(int $row, ?callable $handler = null): Row
+    {
+        $data = [];
+
+        foreach ($this->columnItems as $columnItem) {
+            $data[] = '';
+        }
+
+        $this->rows[$row] = Row::fromValues($data);
+
+        return parent::useRow($row, $handler);
+    }
+
+    protected function getRowObject(int $rowIndex): Row
+    {
+        return $this->rows[$rowIndex];
+    }
+
+    protected function setValueToCell(object $cell, mixed $value, ?string $format = null): Cell
+    {
+        /** @var \Closure $cell */
+        return $cell($value);
+    }
+
+    public function getCellByIndex(int|string $colIndex, int $rowIndex): object
+    {
+        if (is_string($colIndex)) {
+            $colIndex = static::alpha2num($colIndex);
+        }
+
+        $cell = $this->rows[$rowIndex]->getCellAtIndex($colIndex);
+
+        return function (mixed $value) use ($colIndex, $cell, $rowIndex) {
+            $newCell = Cell::fromValue($value, $cell?->getStyle());
+
+            $this->rows[$rowIndex]->setCellAtIndex($newCell, $colIndex);
+
+            return $newCell;
+        };
+    }
+
+    public function getCellByCode(string $code): object
+    {
+        throw new \LogicException('SportWriter dose not support getCellByCode()');
+    }
+
+    protected function defaultCreateDriver(): object
+    {
+        $format = $this->getOption('format');
+
+        $options = $this->writerOptions ??= $this->getWriterOptions();
+
+        return match ($format) {
+            'csv' => new Writer\CSV\Writer($options),
+            'xlsx' => new Writer\XLSX\Writer($options),
+            'ods' => new Writer\ODS\Writer($options),
+        };
+    }
+
+    protected function preprocessDriver(object $driver)
+    {
+        //
+    }
+
+    public function toAttachmentResponse(
+        ?string $filename = null,
+        string $format = 'xlsx',
+        $temp = 'php://temp'
+    ): AttachmentResponse {
+        throw new \LogicException('SpoutWriter does not support ' . __METHOD__);
+    }
+
+    public function download(?string $filename = null, string $format = ''): void
+    {
+        $filename ??= $this->prepareDownloadFilename(
+            (string) $this->getOption('format')
+        );
+
+        $this->getDriver()->openToBrowser($filename);
+    }
+
+    public function save($file, string $format = ''): void
+    {
+        if (is_resource($file)) {
+            throw new \LogicException('SpoutWriter can only output as file');
+        }
+
+        $driver = $this->getDriver();
+
+        if ($file === 'php://output') {
+            $filename = $this->prepareDownloadFilename((string) $this->getOption('format'));
+            $driver->openToBrowser($filename);
+            return;
+        }
+
+        $driver->openToFile($file);
+    }
+
+    public function writeDataToFile(): Writer\AbstractWriter
+    {
+        $driver = $this->getDriver();
+
+        $driver->addRows($this->rows);
+
+        return $driver;
+    }
+
+    public function finish(): void
+    {
+        $this->writeDataToFile();
+
+        $this->getDriver()->close();
+    }
+
+    protected function getWriterOptions(): Writer\Common\AbstractOptions
+    {
+        return match ($this->getOption('format')) {
+            'xlsx' => new Writer\XLSX\Options(),
+            'csv' => new Writer\CSV\Options(),
+            'ods' => new Writer\ODS\Options(),
+        };
+    }
+}
