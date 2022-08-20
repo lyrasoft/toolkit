@@ -35,6 +35,9 @@ use function Windwalker\value;
  */
 class SpoutWriter extends AbstractSpreadsheetWriter
 {
+    /**
+     * @var array<array{ title: string, alias: string, index: int, width: int }>
+     */
     protected array $columnItems = [];
 
     /**
@@ -139,7 +142,8 @@ class SpoutWriter extends AbstractSpreadsheetWriter
         $this->columnItems[$alias] = [
             'title' => $title,
             'width' => 10,
-            'index' => count($this->columnItems)
+            'index' => count($this->columnItems),
+            'alias' => $alias
         ];
 
         $setWidth = function (int $width) use ($alias) {
@@ -151,7 +155,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
     public function useRow(int $row, ?callable $handler = null): Row
     {
-        $this->rows[$row] = new Row([]);
+        $this->rows[$row] ??= new Row([]);
 
         return parent::useRow($row, $handler);
     }
@@ -177,7 +181,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
             $colIndex = static::alpha2num($colIndex);
         }
 
-        $this->rows[$rowIndex] = new Row([]);
+        $this->rows[$rowIndex] ??= new Row([]);
 
         $cell = $this->rows[$rowIndex]->getCellAtIndex($colIndex);
 
@@ -255,17 +259,31 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
         foreach (array_values($this->columnItems) as $i => $columnItem) {
             $cols[] = $columnItem['title'];
-            
+
             $this->writerOptions->setColumnWidth($columnItem['width'], $i + 1);
         }
 
         // Add column row
         $row = Row::fromValues($cols);
-        
+
         $driver->addRow($row);
 
         // Add rows
-        $driver->addRows($this->rows);
+        foreach ($this->rows as $row) {
+            $cells = [];
+
+            foreach (array_values($this->columnItems) as $i => $columnItem) {
+                $cell = $row->getCellAtIndex($i);
+
+                if (!$cell) {
+                    $cell = Cell::fromValue('');
+                }
+
+                $cells[] = $cell;
+            }
+
+            $driver->addRow(new Row($cells, $row->getStyle()));
+        }
 
         return $driver;
     }
