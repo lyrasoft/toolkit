@@ -151,13 +151,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
     public function useRow(int $row, ?callable $handler = null): Row
     {
-        $data = [];
-
-        foreach ($this->columnItems as $columnItem) {
-            $data[] = '';
-        }
-
-        $this->rows[$row] = Row::fromValues($data);
+        $this->rows[$row] = new Row([]);
 
         return parent::useRow($row, $handler);
     }
@@ -183,12 +177,14 @@ class SpoutWriter extends AbstractSpreadsheetWriter
             $colIndex = static::alpha2num($colIndex);
         }
 
+        $this->rows[$rowIndex] = new Row([]);
+
         $cell = $this->rows[$rowIndex]->getCellAtIndex($colIndex);
 
         return function (mixed $value) use ($colIndex, $cell, $rowIndex) {
             $newCell = Cell::fromValue($value, $cell?->getStyle());
 
-            $this->rows[$rowIndex]->setCellAtIndex($newCell, $colIndex);
+            $this->rows[$rowIndex]->setCellAtIndex(Cell::fromValue($value), $colIndex);
 
             return $newCell;
         };
