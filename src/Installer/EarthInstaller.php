@@ -45,17 +45,18 @@ class EarthInstaller
         }
 
         $io->write('');
-        $io->write('Provide FontAwesome Pro Token (leave empty to ignore).');
+        $io->write('Provide FontAwesome Pro Token (leave empty to use ${FA_TOKEN}, use [N] to ignore).');
         $token = trim((string) $io->ask('[Token]: '));
 
-        if ($token === '') {
+        if (strtoupper($token) === 'N') {
             return;
         }
 
         $rcContent = file_get_contents($dist);
 
-        $rcContent = str_replace('$FA_TOKEN', '', $rcContent);
-        $rcContent = str_replace(':_authToken=', ':_authToken=' . $token, $rcContent);
+        if ($token !== '') {
+            $rcContent = str_replace('${FA_TOKEN}', '', $token);
+        }
 
         file_put_contents($npmrc, $rcContent);
 
