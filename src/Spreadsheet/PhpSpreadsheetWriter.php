@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\ColumnDimension;
 use PhpOffice\PhpSpreadsheet\Worksheet\RowDimension;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -100,6 +101,8 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
         /** @var Cell $cell */
         if ($value instanceof \DateTimeInterface) {
             $value = Date::dateTimeToExcel($value);
+
+            $format = 'yyyy/mm/dd h:mm:ss';
         }
 
         if ($format !== null) {
