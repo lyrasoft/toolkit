@@ -105,6 +105,7 @@
             <data directive="@messages" />
             <data directive="@shown" injection="true" prefix="&lt;?php show(" suffix="); ?&gt;" />
             <data directive="@translate" injection="true" prefix="&lt;?php echo $lang(" suffix="); ?&gt;" />
+            <data directive="@scope" injection="true" prefix="&lt;?php [" suffix="] = $__scope; ?&gt;" />
         </directives>
     </component>
 </project>
