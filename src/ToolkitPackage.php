@@ -22,7 +22,7 @@ class ToolkitPackage extends AbstractPackage
     public function install(PackageInstaller $installer): void
     {
         $installer->installFiles(
-            __DIR__ . '/../.ide/phpstorm/idea/*',
+            __DIR__ . '/../.ide/phpstorm/idea/**/*',
             '.idea/',
             'ide'
         );
