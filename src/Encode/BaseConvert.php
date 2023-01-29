@@ -61,7 +61,7 @@ class BaseConvert
         $res = $this->seed[$r];
         $q = $from->dividedBy($length, RoundingMode::FLOOR);
 
-        while ($q->toInt() !== 0) {
+        while (!$q->isEqualTo(0)) {
             $r = $q->mod($length)->toInt();
             $q = $q->dividedBy($length, RoundingMode::FLOOR);
             $res = $this->seed[$r] . $res;

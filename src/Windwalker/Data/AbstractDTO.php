@@ -27,7 +27,7 @@ abstract class AbstractDTO implements \JsonSerializable, DumpableInterface
 
     protected array $keepFields = [];
 
-    public static function wrap(object $data, ?array $keepFields = null): self
+    public static function wrap(object $data, ?array $keepFields = null): static
     {
         if ($data instanceof self) {
             return $data;
