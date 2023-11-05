@@ -1,12 +1,5 @@
 <?php
 
-/**
- * Part of ankecare project.
- *
- * @copyright  Copyright (C) 2021 __ORGANIZATION__.
- * @license    MIT
- */
-
 namespace Lyrasoft\Toolkit\Legacy\Excel;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
