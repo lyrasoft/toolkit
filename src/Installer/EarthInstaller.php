@@ -29,11 +29,13 @@ class EarthInstaller
     {
         $io = $event->getIO();
 
-        $dist = static::getRootDir('.npmrc.dist');
+        $npmDist = static::getRootDir('.npmrc.dist');
         $npmrc = static::getRootDir('.npmrc');
+        $yarnDist = static::getRootDir('.yarnrc.yml.dist');
+        $yarnrc = static::getRootDir('.yarnrc.yml');
 
-        if (is_file($npmrc)) {
-            $io->write('.npmrc file already exists.');
+        if (is_file($npmrc) && is_file($yarnrc)) {
+            $io->write('.npmrc or .yarnrc.yml file already exists.');
             return;
         }
 
@@ -45,15 +47,29 @@ class EarthInstaller
             return;
         }
 
-        $rcContent = file_get_contents($dist);
+        if (!is_file($npmrc)) {
+            $rcContent = file_get_contents($npmDist);
 
-        if ($token !== '') {
-            $rcContent = str_replace('${FA_TOKEN}', '', $token);
+            if ($token !== '') {
+                $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+            }
+
+            file_put_contents($npmrc, $rcContent);
+
+            $io->write('Create: ' . realpath($npmrc));
         }
 
-        file_put_contents($npmrc, $rcContent);
+        if (!is_file($yarnrc)) {
+            $rcContent = file_get_contents($yarnDist);
 
-        $io->write('Create: ' . realpath($npmrc));
+            if ($token !== '') {
+                $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+            }
+
+            file_put_contents($yarnrc, $rcContent);
+
+            $io->write('Create: ' . realpath($yarnrc));
+        }
     }
 
     protected static function getRootDir(string $path): string
