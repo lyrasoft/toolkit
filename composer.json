@@ -19,15 +19,22 @@
         }
     ],
     "minimum-stability": "beta",
-    "require": {},
+    "require": {
+        "php": ">=8.2",
+        "windwalker/core": "^4.1"
+    },
     "extra": {
         "windwalker":{
             "packages": [
                 "Lyrasoft\\Toolkit\\ToolkitPackage"
             ],
             "modules": [
-
             ]
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
         }
     }
 }
