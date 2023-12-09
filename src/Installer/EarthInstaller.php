@@ -48,27 +48,35 @@ class EarthInstaller
         }
 
         if (!is_file($npmrc)) {
-            $rcContent = file_get_contents($npmDist);
+            if (is_file($npmDist)) {
+                $rcContent = file_get_contents($npmDist);
 
-            if ($token !== '') {
-                $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+                if ($token !== '') {
+                    $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+                }
+
+                file_put_contents($npmrc, $rcContent);
+
+                $io->write('Create: ' . realpath($npmrc));
+            } else {
+                $io->write('.npmrc.dist file not exists.');
             }
-
-            file_put_contents($npmrc, $rcContent);
-
-            $io->write('Create: ' . realpath($npmrc));
         }
 
         if (!is_file($yarnrc)) {
-            $rcContent = file_get_contents($yarnDist);
+            if (is_file($npmDist)) {
+                $rcContent = file_get_contents($yarnDist);
 
-            if ($token !== '') {
-                $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+                if ($token !== '') {
+                    $rcContent = str_replace('${FA_TOKEN}', $token, $rcContent);
+                }
+
+                file_put_contents($yarnrc, $rcContent);
+
+                $io->write('Create: ' . realpath($yarnrc));
+            } else {
+                $io->write('.yarnrc.yml.dist file not exists.');
             }
-
-            file_put_contents($yarnrc, $rcContent);
-
-            $io->write('Create: ' . realpath($yarnrc));
         }
     }
 
