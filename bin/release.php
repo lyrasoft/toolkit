@@ -22,15 +22,17 @@ class Build extends Console
     --dry-run  Dry run without git push or commit.
 HELP;
 
+    protected array $scripts = [];
+
     /**
-     * doExecute
-     *
      * @return  bool|mixed
-     *
-     * @since  __DEPLOY_VERSION__
      */
     protected function doExecute()
     {
+        foreach ($this->scripts as $script) {
+            $this->exec($script);
+        }
+
         $currentVersion = trim(file_get_contents(__DIR__ . '/../VERSION'));
         $targetVersion = $this->getArgument(0);
 
@@ -50,6 +52,13 @@ HELP;
         $this->exec('git push --tags');
 
         return true;
+    }
+
+    public function addScript(string $script): static
+    {
+        $this->scripts[] = $script;
+
+        return $this;
     }
 
     /**
@@ -141,17 +150,17 @@ HELP;
             $content = file_get_contents($file->getPathname());
 
             $content = str_replace(
-                ['{DEPLOY_VERSION}', '__DEPLOY_VERSION__', '__LICENSE__', '${ORGANIZATION}', '{ORGANIZATION}'],
-                [$version, $version, 'MIT', 'LYRASOFT', 'LYRASOFT'],
+                ['{DEPLOY_VERSION}', '__DEPLOY_VERSION__', '__LICENSE__', '${ORGANIZATION}', '{ORGANIZATION}', '__ORGANIZATION__'],
+                [$version, $version, 'MIT', 'LYRASOFT', 'LYRASOFT', 'LYRASOFT'],
                 $content
             );
 
             file_put_contents($file->getPathname(), $content);
         }
 
-        $this->exec('git checkout master');
+        $this->exec('git checkout main');
         $this->exec(sprintf('git commit -am "Prepare for %s release."', $version));
-        $this->exec('git push origin master');
+        $this->exec('git push origin main');
     }
 
     /**
