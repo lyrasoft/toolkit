@@ -12,6 +12,7 @@ use Windwalker\Console\CommandWrapper;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Language\LangService;
 use Windwalker\Core\Package\PackageRegistry;
+use Windwalker\Filesystem\Filesystem;
 use Windwalker\Filesystem\Path;
 use Windwalker\Utilities\Str;
 
@@ -70,6 +71,8 @@ class LangExtractCommand implements CommandInterface
             'pkg',
             'p',
             InputOption::VALUE_REQUIRED,
+            'The target package, default is root app.',
+            env('LANG_EXTRACT_PACKAGE')
         );
         $command->addOption(
             'replace',
@@ -119,13 +122,20 @@ class LangExtractCommand implements CommandInterface
         $content = file_get_contents($file);
         $text = mb_substr($content, $startPos, $length);
 
-        $outputContent = file_get_contents($outputFile);
+        if (file_exists($outputFile)) {
+            $outputContent = (string) file_get_contents($outputFile);
+        } else {
+            $outputContent = '';
+        }
+
         $outputContent = rtrim($outputContent, "\n");
         $outputContent .= sprintf(
             "\n%s=\"%s\"\n",
             $langCode,
             str_replace('"', '\"', $text)
         );
+
+        Filesystem::mkdir(dirname($outputFile));
 
         file_put_contents($outputFile, $outputContent);
 
