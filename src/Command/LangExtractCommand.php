@@ -204,7 +204,11 @@ class LangExtractCommand implements CommandInterface
             return sprintf('$this->trans(\'%s\')', $langCode);
         }
 
-        return sprintf('@lang(\'%s\')', $langCode);
+        if ($type === 'blade') {
+            return sprintf('@lang(\'%s\')', $langCode);
+        }
+
+        return sprintf($type, $langCode);
     }
 
     protected static function rangeReplace(
