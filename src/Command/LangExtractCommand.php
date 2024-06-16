@@ -132,7 +132,7 @@ class LangExtractCommand implements CommandInterface
         $outputContent .= sprintf(
             "\n%s=\"%s\"\n",
             $langCode,
-            str_replace('"', '\"', $text)
+            str_replace('"', '\"', trim($text, '\''))
         );
 
         Filesystem::mkdir(dirname($outputFile));
