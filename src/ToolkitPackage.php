@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lyrasoft\Toolkit;
 
 use Lyrasoft\Toolkit\Command\LangExtractCommand;
+use Lyrasoft\Toolkit\Command\ShowDsnCommand;
 use Windwalker\Core\Application\AppClient;
 use Windwalker\Core\Application\ApplicationInterface;
 use Windwalker\Core\Package\AbstractPackage;
@@ -39,6 +40,7 @@ class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
                 'commands',
                 [
                     'lang:extract' => LangExtractCommand::class,
+                    'db:dsn' => ShowDsnCommand::class,
                 ]
             );
         }

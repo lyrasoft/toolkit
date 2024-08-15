@@ -13,10 +13,15 @@ use Windwalker\Crypt\SecretToolkit;
 use Windwalker\Crypt\Symmetric\CipherInterface;
 use Windwalker\Crypt\Symmetric\SodiumCipher;
 
+/**
+ * The EncCommand class.
+ *
+ * @deprecated Current this command no use.
+ */
 #[CommandWrapper(
     description: 'Encrypt DSN'
 )]
-class DsnEncryptCommand implements CommandInterface
+class EncCommand implements CommandInterface
 {
     public function __construct()
     {
