@@ -42,7 +42,7 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
 
             $sheet = $driver->setActiveSheetIndexByName($indexOrName);
         } else {
-            $sheet = $driver->setActiveSheetIndex($indexOrName + 1);
+            $sheet = $driver->setActiveSheetIndex($indexOrName);
         }
 
         return $sheet;
