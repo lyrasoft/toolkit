@@ -201,7 +201,7 @@ class LangExtractCommand implements CommandInterface
 
         $package = $this->packageRegistry->getPackage($pkg);
 
-        return Path::normalize($package::path('languages/' . $langCode . '/' . $output), '/');
+        return Path::normalize($package::path('resources/languages/' . $langCode . '/' . $output), '/');
     }
 
     protected function createReplaceText(string $langCode, string $type): string
