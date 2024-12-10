@@ -228,7 +228,7 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
         }
     }
 
-    public function createReader(string $format = null): IReader
+    public function createReader(?string $format = null): IReader
     {
         if (!class_exists(Spreadsheet::class)) {
             throw new \DomainException('Please install phpoffice/phpspreadsheet first.');
