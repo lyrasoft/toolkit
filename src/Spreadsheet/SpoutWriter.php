@@ -247,7 +247,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
     public function writeDataToFile(): Writer\AbstractWriter
     {
         $driver = $this->getDriver();
-        
+
         $cols = [];
 
         foreach (array_values($this->columnItems) as $i => $columnItem) {

@@ -31,6 +31,15 @@ use Windwalker\Filesystem\Filesystem;
  */
 class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
 {
+    public function __construct(array $options = [])
+    {
+        if (!class_exists(Spreadsheet::class)) {
+            throw new \DomainException('Please install phpoffice/phpspreadsheet first.');
+        }
+
+        parent::__construct($options);
+    }
+
     protected function setActiveSheetToDriver(int|string $indexOrName): Worksheet
     {
         $driver = $this->getDriver();

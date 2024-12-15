@@ -8,10 +8,12 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Row;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Traversable;
+use Windwalker\Data\Collection;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Filesystem;
 use Windwalker\Filesystem\Path;
@@ -77,7 +79,12 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
         return $this->iterateSheetColumns($worksheet, $asValue);
     }
 
-    public function getSheetsIterator(?bool $asValue = null): ?\Generator
+    /**
+     * @param  bool|null  $asValue
+     *
+     * @return  \Generator<ReaderRowIterator>
+     */
+    public function getSheetsIterator(?bool $asValue = null): \Generator
     {
         $loop = function () use ($asValue) {
             $sheets = $this->spreadsheet->getAllSheets();
@@ -103,7 +110,13 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
         );
     }
 
-    protected function iterateSheetRows(Worksheet $sheet, ?bool $asValue = null): ReaderRowIterator
+    /**
+     * @param  Worksheet  $sheet
+     * @param  bool|null  $asValue
+     *
+     * @return  ReaderRowIterator<Collection>
+     */
+    public function iterateSheetRows(Worksheet $sheet, ?bool $asValue = null): ReaderRowIterator
     {
         $runner = function (ReaderRowIterator $iterator) use ($sheet, $asValue) {
             $isHeaderAsField = $iterator->isHeaderAsField();
@@ -157,7 +170,13 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
         return new ReaderRowIterator($runner);
     }
 
-    protected function iterateSheetColumns(Worksheet $sheet, ?bool $asValue = null): ReaderRowIterator
+    /**
+     * @param  Worksheet  $sheet
+     * @param  bool|null  $asValue
+     *
+     * @return  ReaderRowIterator<Collection>
+     */
+    public function iterateSheetColumns(Worksheet $sheet, ?bool $asValue = null): ReaderRowIterator
     {
         $runner = function (ReaderRowIterator $iterator) use ($sheet, $asValue) {
             $isHeaderAsField = $iterator->isHeaderAsField();
@@ -254,7 +273,7 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
      *
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
-    protected function getWorksheet(int|string|null $sheet): Worksheet
+    public function getWorksheet(int|string|null $sheet): Worksheet
     {
         if (is_int($sheet)) {
             $worksheet = $this->spreadsheet->getSheet($sheet);
@@ -269,5 +288,27 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
         }
 
         return $worksheet;
+    }
+
+    public function getActiveSheet(): Worksheet
+    {
+        return $this->spreadsheet->getActiveSheet();
+    }
+
+    public function getActiveSheetIndex(): int
+    {
+        return $this->spreadsheet->getActiveSheetIndex();
+    }
+
+    public function getSpreadsheet(): Spreadsheet
+    {
+        return $this->spreadsheet;
+    }
+
+    public function setSpreadsheet(Spreadsheet $spreadsheet): static
+    {
+        $this->spreadsheet = $spreadsheet;
+
+        return $this;
     }
 }
