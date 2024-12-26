@@ -22,7 +22,7 @@ use function Windwalker\collect;
 use function Windwalker\fs;
 
 #[CommandWrapper(
-    description: ''
+    description: 'Import language sheet (xls, xlsx, csv) to ini files.'
 )]
 class LangImportCommand implements CommandInterface, InteractInterface
 {
