@@ -7,6 +7,8 @@ namespace Lyrasoft\Toolkit;
 use Lyrasoft\Toolkit\Command\LangExportCommand;
 use Lyrasoft\Toolkit\Command\LangExtractCommand;
 use Lyrasoft\Toolkit\Command\LangImportCommand;
+use Lyrasoft\Toolkit\Command\TypeEntityCommand;
+use Lyrasoft\Toolkit\Command\TypeEnumCommand;
 use Windwalker\Core\Application\AppClient;
 use Windwalker\Core\Application\ApplicationInterface;
 use Windwalker\Core\Package\AbstractPackage;
@@ -42,7 +44,9 @@ class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
                 [
                     'lang:extract' => LangExtractCommand::class,
                     'lang:export' => LangExportCommand::class,
-                    'lang:import' => LangImportCommand::class
+                    'lang:import' => LangImportCommand::class,
+                    'type:entity' => TypeEntityCommand::class,
+                    'type:enum' => TypeEnumCommand::class,
                 ]
             );
         }
