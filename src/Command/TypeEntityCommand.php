@@ -85,7 +85,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         );
 
         $command->addOption(
-            'no-def',
+            'no-index',
             null,
             InputOption::VALUE_NONE,
             'Do not add export line to index.d.ts file.'
@@ -110,7 +110,9 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $dest = fs(Path::realpath($dest));
 
         if ($ns === '*') {
-            $ns = 'App\\Entity\\*';
+            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? 'App\\Entity\\';
+
+            $ns = $baseNs . '\\*';
         }
 
         if (str_contains($ns, '*')) {
@@ -148,7 +150,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $db = $this->databaseManager->get($connection);
 
         $f = $this->io->getOption('force');
-        $noDef = $this->io->getOption('no-def');
+        $noIndex = $this->io->getOption('no-index');
 
         foreach ($classes as $class) {
             if (!class_exists($class)) {
@@ -195,13 +197,13 @@ TS;
             }
 
             // Write index.d.ts
-            if (!$noDef) {
-                $this->writeDefinitionFile($dest, $ref);
+            if (!$noIndex) {
+                $this->writeIndexFile($dest, $ref);
             }
         }
     }
 
-    public function writeDefinitionFile(FileObject $dest, \ReflectionClass $ref): void
+    public function writeIndexFile(FileObject $dest, \ReflectionClass $ref): void
     {
         $indexFile = $dest->appendPath('/index.d.ts');
         $indexStream = $indexFile->getStream(READ_WRITE_CREATE_FROM_BEGIN);
@@ -211,7 +213,7 @@ TS;
         if (!str_contains($indexContent, "'./{$ref->getShortName()}")) {
             $indexStream->seek($indexStream->getSize());
 
-            $indexStream->write("\nexport * from './{$ref->getShortName()}';\n");
+            $indexStream->write("export * from './{$ref->getShortName()}';\n");
         }
 
         $indexStream->close();

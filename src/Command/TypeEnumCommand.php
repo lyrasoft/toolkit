@@ -26,6 +26,8 @@ use Windwalker\Utilities\StrNormalize;
 use function Windwalker\collect;
 use function Windwalker\fs;
 
+use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
+
 #[CommandWrapper(
     description: 'Generate typescript enum file.'
 )]
@@ -76,6 +78,13 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
             InputOption::VALUE_NONE,
             'Force override exists files.'
         );
+
+        $command->addOption(
+            'no-index',
+            null,
+            InputOption::VALUE_NONE,
+            'Do not add export line to index.d.ts file.'
+        );
     }
 
     /**
@@ -94,7 +103,9 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
         $dest = fs(Path::realpath($dest));
 
         if ($ns === '*') {
-            $ns = 'App\\Enum\\*';
+            $baseNs = $this->getPackageNamespace($io, 'Enum') ?? 'App\\Enum\\';
+
+            $ns = $baseNs . '\\*';
         }
 
         if (str_contains($ns, '*')) {
@@ -128,6 +139,7 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
     protected function handleClasses(iterable $classes, FileObject $dest): void
     {
         $f = $this->io->getOption('force');
+        $noIndex = $this->io->getOption('no-index');
 
         foreach ($classes as $class) {
             $ref = new \ReflectionEnum($class);
@@ -162,11 +174,9 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
             $caseCode = implode(",\n  ", $caseCodes);
 
             $enumCode = <<<TS
-enum {$ref->getShortName()} {
+export enum {$ref->getShortName()} {
   $caseCode
 }
-
-export default {$ref->getShortName()};
 TS;
 
             $destFile = $dest->appendPath('/' . $ref->getShortName() . '.ts');
@@ -182,7 +192,28 @@ TS;
             } else {
                 $this->io->writeln("[<comment>EXISTS</comment>]: {$destFile->getPathname()}");
             }
+
+            // Write index.ts
+            if (!$noIndex) {
+                $this->writeIndexFile($dest, $ref);
+            }
         }
+    }
+
+    protected function writeIndexFile(FileObject $dest, \ReflectionEnum $ref): void
+    {
+        $indexFile = $dest->appendPath('/index.ts');
+        $indexStream = $indexFile->getStream(READ_WRITE_CREATE_FROM_BEGIN);
+
+        $indexContent = (string) $indexStream;
+
+        if (!str_contains($indexContent, "'./{$ref->getShortName()}")) {
+            $indexStream->seek($indexStream->getSize());
+
+            $indexStream->write("export * from './{$ref->getShortName()}';\n");
+        }
+
+        $indexStream->close();
     }
 
     public function completeOptionValues($optionName, CompletionContext $context)
