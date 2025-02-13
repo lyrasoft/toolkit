@@ -60,7 +60,7 @@ class ExcelImporter
      *
      * @throws \PhpOffice\PhpSpreadsheet\Reader\Exception
      */
-    public function __construct(mixed $file = null, string $format = null)
+    public function __construct(mixed $file = null, ?string $format = null)
     {
         if ($file !== null) {
             if (is_string($file) && strlen($file) < PHP_MAXPATHLEN && is_file($file)) {
@@ -390,7 +390,7 @@ class ExcelImporter
      *
      * @since  1.5.13
      */
-    public function createReader(string $format = null): IReader
+    public function createReader(?string $format = null): IReader
     {
         if (!class_exists(Spreadsheet::class)) {
             throw new \DomainException('Please install phpoffice/phpspreadsheet first.');
