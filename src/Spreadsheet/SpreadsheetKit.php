@@ -20,7 +20,7 @@ class SpreadsheetKit
                 static fn () => new PhpSpreadsheetWriter($options)
             ),
             'spout', 'openspout' => static::createAfterCheckDependency(
-                \OpenSpout\Writer::class,
+                \OpenSpout\Writer\AbstractWriter::class,
                 'openspout/openspout',
                 static fn () => new SpoutWriter($options)
             ),
