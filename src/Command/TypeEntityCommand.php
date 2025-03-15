@@ -159,7 +159,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
 
             $ref = new \ReflectionClass($class);
 
-            $table = $db->getTable($class);
+            $table = $db->getTableManager($class);
             $columns = $table->getColumns();
 
             // $this->io->newLine();
