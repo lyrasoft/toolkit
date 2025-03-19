@@ -7,36 +7,46 @@ namespace Lyrasoft\Toolkit\Api;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use JetBrains\PhpStorm\ArrayShape;
+use Lyrasoft\Luna\Entity\User;
 use Psr\Http\Message\ServerRequestInterface;
 use Windwalker\Core\Security\Exception\UnauthorizedException;
 use Windwalker\Crypt\SecretToolkit;
-use Windwalker\DI\Attributes\Service;
 
 use function Windwalker\chronos;
 use function Windwalker\uid;
 
-#[Service]
-class ApiAuthToolkit
+trait ApiAuthTrait
 {
-    public string $jwtAlg = 'HS512';
+    abstract public static function getIssuer(): string;
+
+    public static function getJWTAlg(): string
+    {
+        return 'HS512';
+    }
 
     public static function getBearerTokenFromRequest(ServerRequestInterface $request): ?string
     {
-        $auth = $request->getHeaderLine('authorization');
-        sscanf($auth, 'Bearer %s', $token);
+        $auth = (string) $request->getHeaderLine('authorization');
+
+        return static::extractBearerTokenFromHeader($auth);
+    }
+
+    public static function extractBearerTokenFromHeader(string $headerLine): ?string
+    {
+        sscanf($headerLine, 'Bearer %s', $token);
 
         return $token;
     }
 
     #[ArrayShape(['string', 'string'])]
-    public static function extractBasicAuth(string $credential): array
+    public static function extractBasicAuth(string $headerLine, bool $allowEmptyPassword = false): array
     {
-        sscanf($credential, 'Basic %s', $auth);
+        sscanf($headerLine, 'Basic %s', $auth);
 
         $auth = base64_decode($auth);
         $auth = explode(':', $auth, 2) + ['', ''];
 
-        if (!isset($auth[1]) || $auth[1] === '') {
+        if ((!isset($auth[1]) || $auth[1] === '') && !$allowEmptyPassword) {
             throw new UnauthorizedException('No password', 400);
         }
 
@@ -54,7 +64,6 @@ class ApiAuthToolkit
      * @throws \DateMalformedStringException
      */
     public function createAuthJWT(
-        string $iss,
         ApiUserSecretInterface $user,
         \DateTimeInterface|string $expires,
         \Closure $handler
@@ -65,7 +74,7 @@ class ApiAuthToolkit
         $data = [
             'iat' => $time->toUnix(),
             'jti' => uid(),
-            'iss' => $iss,
+            'iss' => static::getIssuer(),
             'nbf' => $time->toUnix(),
             'exp' => $exp->toUnix(),
             'data' => null,
@@ -76,11 +85,11 @@ class ApiAuthToolkit
         return JWT::encode(
             $data,
             SecretToolkit::decodeIfHasPrefix($user->getRawSecret()),
-            $this->jwtAlg
+            static::getJWTAlg(),
         );
     }
 
-    public function decodeAuthJWT(string $token, \Closure $userReader): ?object
+    public function decodeAuthJWT(string $token, ?User &$user, \Closure $userReader): ?object
     {
         $payload = static::extractJWT($token);
 
@@ -91,13 +100,19 @@ class ApiAuthToolkit
             return null;
         }
 
-        return JWT::decode(
+        $payload = JWT::decode(
             $token,
             new Key(
                 SecretToolkit::decodeIfHasPrefix($user->getRawSecret()),
-                $this->jwtAlg
+                static::getJWTAlg(),
             )
         );
+
+        if ($payload->iss !== static::getIssuer()) {
+            throw new UnauthorizedException('Invalid issuer', 400);
+        }
+
+        return $payload;
     }
 
     public static function extractJWT(string $token): object
