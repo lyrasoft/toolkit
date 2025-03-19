@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit;
 
+use Lyrasoft\Toolkit\Api\LoginRequireApi;
 use Lyrasoft\Toolkit\Command\LangExportCommand;
 use Lyrasoft\Toolkit\Command\LangExtractCommand;
 use Lyrasoft\Toolkit\Command\LangImportCommand;
@@ -13,6 +14,7 @@ use Windwalker\Core\Application\AppClient;
 use Windwalker\Core\Application\ApplicationInterface;
 use Windwalker\Core\Package\AbstractPackage;
 use Windwalker\Core\Package\PackageInstaller;
+use Windwalker\DI\Attributes\AttributeType;
 use Windwalker\DI\Container;
 use Windwalker\DI\ServiceProviderInterface;
 
@@ -50,5 +52,8 @@ class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
                 ]
             );
         }
+
+        $container->getAttributesResolver()
+            ->registerAttribute(LoginRequireApi::class, AttributeType::METHODS);
     }
 }
