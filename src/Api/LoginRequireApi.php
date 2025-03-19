@@ -16,6 +16,10 @@ class LoginRequireApi implements ContainerAttributeInterface
 
     public static ?\Closure $loginRequireHandler = null;
 
+    public function __construct(public array $options = [])
+    {
+    }
+
     public function __invoke(AttributeHandler $handler): callable
     {
         return function (...$args) use ($handler) {
@@ -25,10 +29,13 @@ class LoginRequireApi implements ContainerAttributeInterface
 
             if (!$user->isLogin()) {
                 if (static::$loginRequireHandler) {
-                    $container->call(static::$loginRequireHandler);
+                    $container->call(static::$loginRequireHandler, ['attribute' => $this, 'options' => $this->options]);
                 } else {
                     if (static::$loginRequireMessage instanceof \Closure) {
-                        $message = (static::$loginRequireMessage)();
+                        $message = $container->call(
+                            static::$loginRequireMessage,
+                            ['attribute' => $this, 'options' => $this->options]
+                        );
                     } else {
                         $message = static::$loginRequireMessage;
                     }
