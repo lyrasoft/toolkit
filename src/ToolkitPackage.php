@@ -10,6 +10,7 @@ use Lyrasoft\Toolkit\Command\LangExportCommand;
 use Lyrasoft\Toolkit\Command\LangExtractCommand;
 use Lyrasoft\Toolkit\Command\LangImportCommand;
 use Lyrasoft\Toolkit\Command\SeederRenameCommand;
+use Lyrasoft\Toolkit\Command\S3VCSCommand;
 use Lyrasoft\Toolkit\Command\TypeEntityCommand;
 use Lyrasoft\Toolkit\Command\TypeEnumCommand;
 use Windwalker\Core\Application\AppClient;
@@ -51,8 +52,10 @@ class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
                     'lang:import' => LangImportCommand::class,
                     'type:entity' => TypeEntityCommand::class,
                     'type:enum' => TypeEnumCommand::class,
+                    's3:vcs' => S3VCSCommand::class,
+
                     'seed:rename' => SeederRenameCommand::class,
-                    'config:revise' => ConfigReviseCommand::class
+                    'config:revise' => ConfigReviseCommand::class,
                 ]
             );
         }
