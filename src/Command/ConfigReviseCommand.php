@@ -28,8 +28,9 @@ class ConfigReviseCommand implements CommandInterface
     {
         $command->addArgument(
             'from',
-            InputArgument::REQUIRED,
-            'The source dir or file.'
+            InputArgument::OPTIONAL,
+            'The source dir or file.',
+            WINDWALKER_ETC . '/packages'
         );
 
         $command->addOption(
