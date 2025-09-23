@@ -21,10 +21,10 @@ use Windwalker\Core\Application\ApplicationInterface;
 )]
 class S3VCSCommand implements CommandInterface, CompletionAwareInterface
 {
-    public const string STATUS_ENABLE = 'enable';
-    public const string STATUS_DISABLE = 'disable';
-    public const string STATUS_VIEW = 'status';
-    public const array STATUSES = [
+    public const STATUS_ENABLE = 'enable';
+    public const STATUS_DISABLE = 'disable';
+    public const STATUS_VIEW = 'status';
+    public const STATUSES = [
         self::STATUS_ENABLE,
         self::STATUS_DISABLE,
         self::STATUS_VIEW,
