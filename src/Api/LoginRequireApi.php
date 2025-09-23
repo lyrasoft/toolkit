@@ -23,7 +23,7 @@ class LoginRequireApi implements ContainerAttributeInterface
     public function __invoke(AttributeHandler $handler): callable
     {
         return function (...$args) use ($handler) {
-            $container = $handler->getContainer();
+            $container = $handler->container;
             $userService = $container->get(UserService::class);
             $user = $userService->getCurrentUser();
 
