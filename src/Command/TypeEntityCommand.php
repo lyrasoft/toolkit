@@ -33,7 +33,7 @@ use function Windwalker\fs;
 use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 
 #[CommandWrapper(
-    description: 'Generate entity d.ts file.'
+    description: 'Generate entity.ts file.'
 )]
 class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
 {
@@ -88,7 +88,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
             'no-index',
             null,
             InputOption::VALUE_NONE,
-            'Do not add export line to index.d.ts file.'
+            'Do not add export line to index.ts file.'
         );
 
         $this->configureDatabaseOptions($command);
@@ -182,7 +182,7 @@ export interface {$ref->getShortName()} {
 
 TS;
 
-            $destFile = $dest->appendPath('/' . $ref->getShortName() . '.d.ts');
+            $destFile = $dest->appendPath('/' . $ref->getShortName() . '.ts');
 
             if (!$destFile->isFile()) {
                 $destFile->write($interface);
@@ -196,7 +196,7 @@ TS;
                 $this->io->writeln("[<comment>EXISTS</comment>]: {$destFile->getPathname()}");
             }
 
-            // Write index.d.ts
+            // Write index.ts
             if (!$noIndex) {
                 $this->writeIndexFile($dest, $ref);
             }
@@ -205,7 +205,7 @@ TS;
 
     public function writeIndexFile(FileObject $dest, \ReflectionClass $ref): void
     {
-        $indexFile = $dest->appendPath('/index.d.ts');
+        $indexFile = $dest->appendPath('/index.ts');
         $indexStream = $indexFile->getStream(READ_WRITE_CREATE_FROM_BEGIN);
 
         $indexContent = (string) $indexStream;
