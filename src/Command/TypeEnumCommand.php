@@ -26,6 +26,8 @@ use Windwalker\Utilities\StrNormalize;
 use function Windwalker\collect;
 use function Windwalker\fs;
 
+use function Windwalker\piping;
+
 use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 
 #[CommandWrapper(
@@ -85,6 +87,25 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
             InputOption::VALUE_NONE,
             'Do not add export line to index.d.ts file.'
         );
+
+        $command->addOption(
+            'prefix',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'The namespace prefix.',
+            'App\\Enum\\'
+        );
+    }
+
+    protected static function getDefaultDest(): string
+    {
+        $dest = env('TOOLKIT_TYPE_GEN_DEST');
+
+        if ($dest) {
+            return $dest . '/enum';
+        }
+
+        return WINDWALKER_RESOURCES . '/assets/src/enum';
     }
 
     /**
@@ -99,11 +120,16 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
         $this->io = $io;
 
         $ns = $io->getArgument('ns');
-        $dest = $io->getArgument('dest') ?: WINDWALKER_RESOURCES . '/assets/src/enum';
+        $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
+        $prefix = piping($io->getOption('prefix'))
+            ->pipe(fn($v) => str_replace('/', '\\', $v))
+            ->pipe(fn($v) => Str::ensureRight($v, '\\'))
+            ->value;
+
         if ($ns === '*') {
-            $baseNs = $this->getPackageNamespace($io, 'Enum') ?? 'App\\Enum\\';
+            $baseNs = $this->getPackageNamespace($io, 'Enum') ?? $prefix;
 
             $ns = $baseNs . '\\*';
         }
@@ -118,7 +144,7 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
         }
 
         if (!class_exists($ns)) {
-            $baseNs = $this->getPackageNamespace($io, 'Enum') ?? 'App\\Enum\\';
+            $baseNs = $this->getPackageNamespace($io, 'Enum') ?? $prefix;
             $ns = $baseNs . $ns;
         }
 
@@ -222,11 +248,19 @@ TS;
 
     public function completeArgumentValues($argumentName, CompletionContext $context)
     {
+        $prefix = 'App\\Enum\\';
+        $words = $context->getWords();
+        $i = array_search('--prefix', $words, true);
+
+        if ($i !== false && isset($words[$i + 1])) {
+            $prefix = Str::ensureRight(str_replace('/', '\\', $words[$i + 1]), '\\');
+        }
+
         if ($argumentName === 'ns') {
-            $classes = iterator_to_array($this->classFinder->findClasses('App\\Enum\\'));
+            $classes = iterator_to_array($this->classFinder->findClasses($prefix));
 
             return collect($classes)
-                ->map(fn(string $className) => (string) Collection::explode('\\', $className)->pop())
+                ->map(fn(string $className) => Str::removeLeft($className, $prefix))
                 ->dump();
         }
 

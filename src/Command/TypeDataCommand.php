@@ -14,14 +14,10 @@ use Windwalker\Console\CommandWrapper;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
-use Windwalker\Core\Database\Command\CommandDatabaseTrait;
-use Windwalker\Core\Generator\Builder\EntityMemberBuilder;
 use Windwalker\Core\Utilities\ClassFinder;
-use Windwalker\Data\Collection;
 use Windwalker\Database\Schema\Ddl\Column;
 use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
-use Windwalker\Filesystem\Filesystem;
 use Windwalker\Filesystem\Path;
 use Windwalker\ORM\ORM;
 use Windwalker\Utilities\Str;
@@ -29,6 +25,8 @@ use Windwalker\Utilities\StrNormalize;
 
 use function Windwalker\collect;
 use function Windwalker\fs;
+use function Windwalker\get_object_dump_props;
+use function Windwalker\piping;
 
 use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 
@@ -89,6 +87,14 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
             InputOption::VALUE_NONE,
             'Do not add export line to index.ts file.'
         );
+
+        $command->addOption(
+            'prefix',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'The namespace prefix.',
+            'App\\Data\\'
+        );
     }
 
     /**
@@ -103,11 +109,16 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
         $this->io = $io;
 
         $ns = $io->getArgument('ns');
-        $dest = $io->getArgument('dest') ?: WINDWALKER_RESOURCES . '/assets/src/types/data';
+        $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
+        $prefix = piping($io->getOption('prefix'))
+            ->pipe(fn($v) => str_replace('/', '\\', $v))
+            ->pipe(fn($v) => Str::ensureRight($v, '\\'))
+            ->value;
+
         if ($ns === '*') {
-            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? 'App\\Data\\';
+            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? $prefix;
 
             $ns = $baseNs . '\\*';
         }
@@ -122,7 +133,7 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
         }
 
         if (!class_exists($ns)) {
-            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? 'App\\Data\\';
+            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? $prefix;
             $ns = $baseNs . $ns;
         }
 
@@ -140,6 +151,17 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
         return 0;
     }
 
+    protected static function getDefaultDest(): string
+    {
+        $dest = env('TOOLKIT_TYPE_GEN_DEST');
+
+        if ($dest) {
+            return $dest . '/data';
+        }
+
+        return WINDWALKER_RESOURCES . '/assets/src/data';
+    }
+
     protected function handleClasses(iterable $classes, FileObject $dest): void
     {
         $f = $this->io->getOption('force');
@@ -151,7 +173,7 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
             }
 
             $ref = new \ReflectionClass($class);
-            $properties = $ref->getProperties();
+            $properties = get_object_dump_props($class);
             $props = [];
 
             foreach ($properties as $prop) {
@@ -292,11 +314,19 @@ TS;
 
     public function completeArgumentValues($argumentName, CompletionContext $context)
     {
+        $prefix = 'App\\Data\\';
+        $words = $context->getWords();
+        $i = array_search('--prefix', $words, true);
+
+        if ($i !== false && isset($words[$i + 1])) {
+            $prefix = Str::ensureRight(str_replace('/', '\\', $words[$i + 1]), '\\');
+        }
+
         if ($argumentName === 'ns') {
-            $classes = iterator_to_array($this->classFinder->findClasses('App\\Data\\'));
+            $classes = iterator_to_array($this->classFinder->findClasses($prefix, true));
 
             return collect($classes)
-                ->map(fn(string $className) => (string) Collection::explode('\\', $className)->pop())
+                ->map(fn(string $className) => Str::removeLeft($className, $prefix))
                 ->dump();
         }
 

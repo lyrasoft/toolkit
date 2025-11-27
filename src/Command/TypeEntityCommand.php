@@ -106,7 +106,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $this->io = $io;
 
         $ns = $io->getArgument('ns');
-        $dest = $io->getArgument('dest') ?: WINDWALKER_RESOURCES . '/assets/src/types/entity';
+        $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
         if ($ns === '*') {
@@ -141,6 +141,17 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $this->handleClasses($classes, $dest);
 
         return 0;
+    }
+
+    protected static function getDefaultDest(): string
+    {
+        $dest = env('TOOLKIT_TYPE_GEN_DEST');
+
+        if ($dest) {
+            return $dest . '/entity';
+        }
+
+        return WINDWALKER_RESOURCES . '/assets/src/entity';
     }
 
     protected function handleClasses(iterable $classes, FileObject $dest): void
