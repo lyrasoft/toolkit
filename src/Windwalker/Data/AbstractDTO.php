@@ -13,6 +13,8 @@ use Windwalker\Utilities\TypeCast;
  * The DataTransferObject class.
  *
  * @template T
+ *
+ * @deprecated  Use custom Record object to replace this.
  */
 abstract class AbstractDTO implements \JsonSerializable, DumpableInterface
 {
