@@ -47,23 +47,9 @@ class SpoutWriter extends AbstractSpreadsheetWriter
         $this->prepareSheetInfo(0);
     }
 
-    protected function configureOptions(OptionsResolver $resolver): void
-    {
-        parent::configureOptions($resolver);
-
-        $resolver->define('format')
-            ->allowedTypes('string')
-            ->allowedValues(
-                'csv',
-                'xlsx',
-                'ods'
-            )
-            ->default('xlsx');
-    }
-
     public function useFormat(string $format): static
     {
-        $this->setOption('format', $format);
+        $this->options->format = $format;
 
         return $this;
     }
@@ -194,7 +180,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
     protected function defaultCreateDriver(): object
     {
-        $format = $this->getOption('format');
+        $format = $this->options->format;
 
         $options = $this->writerOptions ??= $this->getWriterOptions();
 
@@ -221,7 +207,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
     public function download(?string $filename = null, string $format = ''): void
     {
         $filename ??= $this->prepareDownloadFilename(
-            (string) $this->getOption('format')
+            $this->options->format
         );
 
         $this->getDriver()->openToBrowser($filename);
@@ -236,7 +222,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
         $driver = $this->getDriver();
 
         if ($file === 'php://output') {
-            $filename = $this->prepareDownloadFilename((string) $this->getOption('format'));
+            $filename = $this->prepareDownloadFilename($this->options->format);
             $driver->openToBrowser($filename);
             return;
         }
@@ -290,7 +276,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
 
     protected function getWriterOptions(): Writer\Common\AbstractOptions
     {
-        return match ($this->getOption('format')) {
+        return match ($this->options->format) {
             'xlsx' => new Writer\XLSX\Options(),
             'csv' => new Writer\CSV\Options(),
             'ods' => new Writer\ODS\Options(),

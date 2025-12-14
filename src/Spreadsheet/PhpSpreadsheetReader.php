@@ -8,40 +8,30 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\Row;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use Traversable;
 use Windwalker\Data\Collection;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Filesystem;
 use Windwalker\Filesystem\Path;
-use Windwalker\Utilities\Options\OptionsResolverTrait;
 
 use function Windwalker\collect;
 
 class PhpSpreadsheetReader extends AbstractSpreadsheetReader
 {
-    use OptionsResolverTrait;
-
     protected Spreadsheet $spreadsheet;
 
-    public function __construct(array $options = [])
-    {
-        $this->resolveOptions($options, $this->configureOptions(...));
-    }
+    public protected(set) ReaderOptions $options;
 
-    protected function configureOptions(OptionsResolver $resolver): void
+    public function __construct(array|ReaderOptions $options = [])
     {
-        $resolver->define('temp_path')
-            ->allowedTypes('string')
-            ->default(WINDWALKER_TEMP);
+        $this->options = ReaderOptions::wrapWith($options);
     }
 
     public function load(string|StreamInterface $data, string $format = 'Xlsx'): static
     {
-        $temp = Filesystem::createTemp($this->options['temp_path']);
+        $temp = Filesystem::createTemp($this->options->tempPath);
         $temp->deleteWhenDestruct();
         $temp->deleteWhenShutdown();
 

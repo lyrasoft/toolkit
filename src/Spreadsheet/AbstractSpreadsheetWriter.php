@@ -22,8 +22,6 @@ use Windwalker\Utilities\Options\OptionsResolverTrait;
  */
 abstract class AbstractSpreadsheetWriter
 {
-    use OptionsResolverTrait;
-
     protected array $currentRowIndex = [];
 
     protected array $maxRowIndex = [];
@@ -36,28 +34,11 @@ abstract class AbstractSpreadsheetWriter
 
     protected ?\Closure $preprocess = null;
 
-    public function __construct(array $options = [])
+    public protected(set) WriterOptions $options;
+
+    public function __construct(array|WriterOptions $options = new WriterOptions())
     {
-        $this->resolveOptions($options, [$this, 'configureOptions']);
-    }
-
-    protected function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->define('show_header')
-            ->allowedTypes('bool')
-            ->default(true);
-
-        $resolver->define('creator')
-            ->allowedTypes('string')
-            ->default('Windwalker');
-
-        $resolver->define('title')
-            ->allowedTypes('string')
-            ->default('');
-
-        $resolver->define('description')
-            ->allowedTypes('string')
-            ->default('');
+        $this->options = WriterOptions::wrapWith($options);
     }
 
     public function setActiveSheet(int|string $indexOrName, ?\Closure $handler = null): object
@@ -168,7 +149,7 @@ abstract class AbstractSpreadsheetWriter
 
     protected function getTargetRowIndex(int $index): int
     {
-        $showHeader = $this->options['show_header'];
+        $showHeader = $this->options->showHeader;
 
         if ($showHeader) {
             ++$index;
@@ -395,11 +376,11 @@ abstract class AbstractSpreadsheetWriter
     {
         $ext = strtolower($format);
 
-        if ($this->getOption('title')) {
-            return $this->getOption('title') . '.' . $ext;
+        if ($this->options->title) {
+            return $this->options->title . '.' . $ext;
         }
 
-        return 'Export-' . Chronos::now('Y-m-d-H-i-s') . '.' . $ext;
+        return 'Export-' . \Windwalker\chronos()->format('Y-m-d-H-i-s') . '.' . $ext;
     }
 
     /**

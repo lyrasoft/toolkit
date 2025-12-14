@@ -31,7 +31,7 @@ use Windwalker\Filesystem\Filesystem;
  */
 class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
 {
-    public function __construct(array $options = [])
+    public function __construct(array|WriterOptions $options = new WriterOptions())
     {
         if (!class_exists(Spreadsheet::class)) {
             throw new \DomainException('Please install phpoffice/phpspreadsheet first.');
@@ -70,7 +70,7 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
     ): ColumnDimension {
         $driver = $this->getDriver();
 
-        $showHeader = $this->options['show_header'];
+        $showHeader = $this->options->showHeader;
 
         $sheet = $driver->getActiveSheet();
 
@@ -139,15 +139,15 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
 
     protected function preprocessDriver(object $driver): void
     {
-        $creator = (string) $this->getOption('creator');
-        $title = (string) $this->getOption('title');
-        $desc = (string) $this->getOption('description');
+        $creator = $this->options->creator;
+        $title = $this->options->title;
+        $desc = $this->options->description;
 
         /** @var Spreadsheet $driver */
         $properties = $driver->getProperties();
 
         if ($creator !== '') {
-            $properties->setCreator($this->getOption('creator'));
+            $properties->setCreator($creator);
         }
 
         if ($title !== '') {
