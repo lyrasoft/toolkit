@@ -4,16 +4,12 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit\Spreadsheet;
 
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\OptionsResolver\OptionsResolver;
-use Windwalker\Core\DateTime\Chronos;
 use Windwalker\Http\Helper\HeaderHelper;
 use Windwalker\Http\Output\Output;
 use Windwalker\Http\Response\AttachmentResponse;
 use Windwalker\Http\Response\Response;
 use Windwalker\Stream\Stream;
-use Windwalker\Utilities\Options\OptionsResolverTrait;
 
 /**
  * The AbstractSpreadsheetExporter class.
@@ -60,11 +56,16 @@ abstract class AbstractSpreadsheetWriter
 
     abstract public function getActiveSheetIndex(): int;
 
+    public function getActiveSheet(): mixed
+    {
+        throw new \LogicException('Method getActiveSheet() not implemented, use getActiveSheetIndex() instead.');
+    }
+
     public function addColumn(string $alias, string $title = '', array $options = []): object
     {
         $sheetIndex = $this->getActiveSheetIndex();
 
-        $this->columnMapping[$sheetIndex][] = $alias;
+        $this->columnMapping[$sheetIndex][] = [$alias, $title];
 
         return $this->prepareColumn(
             array_key_last($this->columnMapping[$sheetIndex]) + 1,
@@ -74,9 +75,16 @@ abstract class AbstractSpreadsheetWriter
         );
     }
 
-    public function configureColumns(?callable $handler)
+    public function configureColumns(callable $handler): void
     {
         $handler($this);
+    }
+
+    public function configureDriver(callable $handler): static
+    {
+        $handler($this->getDriver());
+
+        return $this;
     }
 
     public function setColumn(string|int $col, string $alias, string $title = '', array $options = []): object
@@ -87,7 +95,7 @@ abstract class AbstractSpreadsheetWriter
             $colIndex = static::alpha2num($col);
         }
 
-        $this->columnMapping[$this->getActiveSheetIndex()][$colIndex - 1] = $alias;
+        $this->columnMapping[$this->getActiveSheetIndex()][$colIndex - 1] = [$alias, $title];
 
         return $this->prepareColumn(
             $colIndex,
@@ -106,7 +114,10 @@ abstract class AbstractSpreadsheetWriter
 
     public function getColumnIndexByAlias(string $alias): int
     {
-        $index = array_search($alias, $this->columnMapping[$this->getActiveSheetIndex()], true);
+        $index = array_find_key(
+            $this->columnMapping[$this->getActiveSheetIndex()],
+            fn ($col) => $col[0] === $alias
+        );
 
         if ($index === false) {
             throw new \OutOfBoundsException('Column alias: ' . $alias . ' not found.');
@@ -145,6 +156,46 @@ abstract class AbstractSpreadsheetWriter
             $this->maxRowIndex[$sheetIndex] + 1,
             $handler
         );
+    }
+
+    public function addEmptyRows(int $num = 1): object
+    {
+        $sheetIndex = $this->getActiveSheetIndex();
+
+        foreach (range(1, $num) as $n) {
+            $this->useRow(
+                $this->maxRowIndex[$sheetIndex] + 1,
+            );
+        }
+
+        return $this;
+    }
+
+    public function addHeaderRow(?int $to = null): object
+    {
+        $handler = function (AbstractSpreadsheetWriter $row) {
+            $sheetIndex = $this->getActiveSheetIndex();
+
+            foreach ($this->columnMapping[$sheetIndex] as $colIndex => [$alias, $title]) {
+                $row->setRowCell($alias, $title);
+            }
+        };
+
+        if ($to === null) {
+            return $this->addRow($handler);
+        }
+
+        return $this->useRow($to, $handler);
+    }
+
+    public function freezePane(string $coordinate): mixed
+    {
+        throw new \LogicException('Method freezePane() not implemented.');
+    }
+
+    public function unfreezePane(): mixed
+    {
+        throw new \LogicException('Method unfreezePane() not implemented.');
     }
 
     protected function getTargetRowIndex(int $index): int

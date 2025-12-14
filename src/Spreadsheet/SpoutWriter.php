@@ -98,7 +98,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
         return 0;
     }
 
-    public function configureColumns(?callable $handler): void
+    public function configureColumns(callable $handler): void
     {
         if ($this->driver) {
             throw new \LogicException(
@@ -110,8 +110,6 @@ class SpoutWriter extends AbstractSpreadsheetWriter
         $this->writerOptions = $this->getWriterOptions();
 
         parent::configureColumns($handler);
-
-
 
         $this->columnItems = [];
     }

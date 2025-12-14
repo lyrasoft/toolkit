@@ -11,7 +11,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
  */
 class SpreadsheetKit
 {
-    public static function createWriter(string $driver, array $options = []): AbstractSpreadsheetWriter
+    public static function createWriter(string $driver, array|WriterOptions $options = new WriterOptions()): AbstractSpreadsheetWriter
     {
         return match (strtolower($driver)) {
             'php_spreadsheet' => static::createAfterCheckDependency(
@@ -27,7 +27,7 @@ class SpreadsheetKit
         };
     }
 
-    public static function createReader(string $driver, array $options = []): AbstractSpreadsheetReader
+    public static function createReader(string $driver, array|ReaderOptions $options = new ReaderOptions()): AbstractSpreadsheetReader
     {
         return match (strtolower($driver)) {
             'php_spreadsheet' => static::createAfterCheckDependency(
@@ -38,17 +38,17 @@ class SpreadsheetKit
         };
     }
 
-    public static function createPhpSpreadsheetWriter(array $options = []): PhpSpreadsheetWriter
+    public static function createPhpSpreadsheetWriter(array|WriterOptions $options = new WriterOptions()): PhpSpreadsheetWriter
     {
         return static::createWriter('php_spreadsheet', $options);
     }
 
-    public static function createPhpSpreadsheetReader(array $options = []): PhpSpreadsheetReader
+    public static function createPhpSpreadsheetReader(array|ReaderOptions $options = new ReaderOptions()): PhpSpreadsheetReader
     {
         return static::createReader('php_spreadsheet', $options);
     }
 
-    public static function createSpoutWriter(array $options = []): SpoutWriter
+    public static function createSpoutWriter(array|WriterOptions $options = new WriterOptions()): SpoutWriter
     {
         return static::createWriter('spout', $options);
     }

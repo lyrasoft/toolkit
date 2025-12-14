@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lyrasoft\Toolkit\Spreadsheet;
 
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\CellAddress;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -28,6 +29,7 @@ use Windwalker\Filesystem\Filesystem;
  * @method Cell setRowCell(string $alias, mixed $value, ?string $format = null)
  * @method Cell setRowCellTo(string $alias, int $rowIndex, mixed $value, ?string $format = null)
  * @method Cell getCell(string $alias, int $rowIndex)
+ * @method RowDimension addHeaderRow(?int $to = null)
  */
 class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
 {
@@ -60,6 +62,11 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
     public function getActiveSheetIndex(): int
     {
         return $this->getDriver()->getActiveSheetIndex();
+    }
+
+    public function getActiveSheet(): Worksheet
+    {
+        return $this->getDriver()->getActiveSheet();
     }
 
     protected function prepareColumn(
@@ -135,6 +142,43 @@ class PhpSpreadsheetWriter extends AbstractSpreadsheetWriter
         $driver = $this->getDriver();
 
         return $driver->getActiveSheet()->getCell($code);
+    }
+
+    /**
+     * Freeze Pane.
+     *
+     * Examples:
+     *
+     *     - A2 will freeze the rows above cell A2 (i.e row 1)
+     *     - B1 will freeze the columns to the left of cell B1 (i.e column A)
+     *     - B2 will freeze the rows above and to the left of cell B2 (i.e row 1 and column A)
+     *
+     * @param null|array{0: int, 1: int}|CellAddress|string $coordinate Coordinate of the cell as a string, eg: 'C5';
+     *            or as an array of [$columnIndex, $row] (e.g. [3, 5]), or a CellAddress object.
+     *        Passing a null value for this argument will clear any existing freeze pane for this worksheet.
+     * @param null|array{0: int, 1: int}|CellAddress|string $topLeftCell default position of the right bottom pane
+     *            Coordinate of the cell as a string, eg: 'C5'; or as an array of [$columnIndex, $row] (e.g. [3, 5]),
+     *            or a CellAddress object.
+     *
+     * @return Worksheet
+     */
+    public function freezePane(null|CellAddress|string|array $coordinate, null|CellAddress|string|array $topLeftCell = null, bool $frozenSplit = false): Worksheet
+    {
+        $driver = $this->getDriver();
+
+        return $driver->getActiveSheet()
+            ->freezePane(
+                $coordinate,
+                $topLeftCell,
+                $frozenSplit
+            );
+    }
+
+    public function unfreezePane(): Worksheet
+    {
+        $driver = $this->getDriver();
+
+        return $driver->getActiveSheet()->unfreezePane();
     }
 
     protected function preprocessDriver(object $driver): void
