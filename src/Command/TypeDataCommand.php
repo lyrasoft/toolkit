@@ -156,10 +156,10 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
         $dest = env('TOOLKIT_TYPE_GEN_DEST');
 
         if ($dest) {
-            return $dest . '/data';
+            return $dest . '/types/data';
         }
 
-        return WINDWALKER_RESOURCES . '/assets/src/data';
+        return WINDWALKER_RESOURCES . '/assets/src/types/data';
     }
 
     protected function handleClasses(iterable $classes, FileObject $dest): void

@@ -15,13 +15,11 @@ use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
 use Windwalker\Core\Database\Command\CommandDatabaseTrait;
-use Windwalker\Core\Generator\Builder\EntityMemberBuilder;
 use Windwalker\Core\Utilities\ClassFinder;
 use Windwalker\Data\Collection;
 use Windwalker\Database\Schema\Ddl\Column;
 use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
-use Windwalker\Filesystem\Filesystem;
 use Windwalker\Filesystem\Path;
 use Windwalker\ORM\ORM;
 use Windwalker\Utilities\Str;
@@ -148,10 +146,10 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $dest = env('TOOLKIT_TYPE_GEN_DEST');
 
         if ($dest) {
-            return $dest . '/entity';
+            return $dest . '/types/entity';
         }
 
-        return WINDWALKER_RESOURCES . '/assets/src/entity';
+        return WINDWALKER_RESOURCES . '/assets/src/types/entity';
     }
 
     protected function handleClasses(iterable $classes, FileObject $dest): void

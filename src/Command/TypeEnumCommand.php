@@ -7,6 +7,7 @@ namespace Lyrasoft\Toolkit\Command;
 use Stecman\Component\Symfony\Console\BashCompletion\Completion\CompletionAwareInterface;
 use Stecman\Component\Symfony\Console\BashCompletion\CompletionContext;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Windwalker\Console\CommandInterface;
@@ -16,7 +17,6 @@ use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
 use Windwalker\Core\Database\Command\CommandDatabaseTrait;
 use Windwalker\Core\Utilities\ClassFinder;
-use Windwalker\Data\Collection;
 use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Path;
@@ -25,7 +25,6 @@ use Windwalker\Utilities\StrNormalize;
 
 use function Windwalker\collect;
 use function Windwalker\fs;
-
 use function Windwalker\piping;
 
 use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
@@ -248,12 +247,12 @@ TS;
 
     public function completeArgumentValues($argumentName, CompletionContext $context)
     {
-        $prefix = 'App\\Enum\\';
-        $words = $context->getWords();
-        $i = array_search('--prefix', $words, true);
+        $input = CommandWrapper::getInputForCompletion($this, $context);
 
-        if ($i !== false && isset($words[$i + 1])) {
-            $prefix = Str::ensureRight(str_replace('/', '\\', $words[$i + 1]), '\\');
+        $prefix = 'App\\Enum\\';
+
+        if ($p = $input->getOption('prefix')) {
+            $prefix = Str::ensureRight(str_replace('/', '\\', $p), '\\');
         }
 
         if ($argumentName === 'ns') {
