@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit\Command;
 
-use Stecman\Component\Symfony\Console\BashCompletion\Completion\CompletionAwareInterface;
-use Stecman\Component\Symfony\Console\BashCompletion\CompletionContext;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Windwalker\Console\CommandInterface;
 use Windwalker\Console\CommandWrapper;
+use Windwalker\Console\CompletionContext;
+use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
@@ -24,6 +24,7 @@ use Windwalker\Utilities\Str;
 use Windwalker\Utilities\StrNormalize;
 
 use function Windwalker\collect;
+use function Windwalker\ds;
 use function Windwalker\fs;
 use function Windwalker\get_object_dump_props;
 use function Windwalker\piping;
@@ -33,7 +34,7 @@ use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 #[CommandWrapper(
     description: 'Generate data / record to .ts file.'
 )]
-class TypeDataCommand implements CommandInterface, CompletionAwareInterface
+class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 {
     use CommandPackageResolveTrait;
 
@@ -93,7 +94,6 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
             null,
             InputOption::VALUE_REQUIRED,
             'The namespace prefix.',
-            'App\\Data\\'
         );
     }
 
@@ -112,7 +112,7 @@ class TypeDataCommand implements CommandInterface, CompletionAwareInterface
         $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
-        $prefix = piping($io->getOption('prefix'))
+        $prefix = piping($io->getOption('prefix') ?: 'App\\Data\\')
             ->pipe(fn($v) => str_replace('/', '\\', $v))
             ->pipe(fn($v) => Str::ensureRight($v, '\\'))
             ->value;
@@ -308,26 +308,34 @@ TS;
         return compact('name', 'types');
     }
 
-    public function completeOptionValues($optionName, CompletionContext $context)
+    public function handleCompletions(CompletionContext $context): ?array
     {
-    }
+        if ($context->isArgument() && $context->name === 'ns') {
+            $package = $this->getPackage($context->io);
 
-    public function completeArgumentValues($argumentName, CompletionContext $context)
-    {
-        $prefix = 'App\\Data\\';
-        $words = $context->getWords();
-        $i = array_search('--prefix', $words, true);
+            $prefix = 'App\\Data\\';
 
-        if ($i !== false && isset($words[$i + 1])) {
-            $prefix = Str::ensureRight(str_replace('/', '\\', $words[$i + 1]), '\\');
-        }
+            if ($package) {
+                $prefix = $package::namespace() . '\\Data\\';
+            }
 
-        if ($argumentName === 'ns') {
+            $prefixCustom = $context->getOption('prefix');
+
+            if ($prefixCustom) {
+                $prefix = Str::ensureRight(str_replace('/', '\\', $prefixCustom), '\\');
+            }
+
             $classes = iterator_to_array($this->classFinder->findClasses($prefix, true));
 
             return collect($classes)
                 ->map(fn(string $className) => Str::removeLeft($className, $prefix))
                 ->dump();
+        }
+
+        if ($context->isOption() && $context->name === 'pkg') {
+            $packages = $this->packageRegistry->getPackagesKeyByName();
+
+            return array_keys($packages);
         }
 
         return null;

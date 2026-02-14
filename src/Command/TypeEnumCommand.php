@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit\Command;
 
-use Stecman\Component\Symfony\Console\BashCompletion\Completion\CompletionAwareInterface;
-use Stecman\Component\Symfony\Console\BashCompletion\CompletionContext;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Windwalker\Console\CommandInterface;
 use Windwalker\Console\CommandWrapper;
+use Windwalker\Console\CompletionContext;
+use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
@@ -32,7 +31,7 @@ use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 #[CommandWrapper(
     description: 'Generate typescript enum file.'
 )]
-class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
+class TypeEnumCommand implements CommandInterface, CompletionHandlerInterface
 {
     use CommandPackageResolveTrait;
     use CommandDatabaseTrait;
@@ -91,8 +90,7 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
             'prefix',
             null,
             InputOption::VALUE_REQUIRED,
-            'The namespace prefix.',
-            'App\\Enum\\'
+            'The namespace prefix.'
         );
     }
 
@@ -122,7 +120,7 @@ class TypeEnumCommand implements CommandInterface, CompletionAwareInterface
         $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
-        $prefix = piping($io->getOption('prefix'))
+        $prefix = piping($io->getOption('prefix') ?: 'App\\Enum\\')
             ->pipe(fn($v) => str_replace('/', '\\', $v))
             ->pipe(fn($v) => Str::ensureRight($v, '\\'))
             ->value;
@@ -241,26 +239,34 @@ TS;
         $indexStream->close();
     }
 
-    public function completeOptionValues($optionName, CompletionContext $context)
+    public function handleCompletions(CompletionContext $context): ?array
     {
-    }
+        if ($context->isArgument() && $context->name === 'ns') {
+            $package = $this->getPackage($context->io);
 
-    public function completeArgumentValues($argumentName, CompletionContext $context)
-    {
-        $input = CommandWrapper::getInputForCompletion($this, $context);
+            $prefix = 'App\\Enum\\';
 
-        $prefix = 'App\\Enum\\';
+            if ($package) {
+                $prefix = $package::namespace() . '\\Enum\\';
+            }
 
-        if ($p = $input->getOption('prefix')) {
-            $prefix = Str::ensureRight(str_replace('/', '\\', $p), '\\');
-        }
+            $prefixCustom = $context->getOption('prefix');
 
-        if ($argumentName === 'ns') {
+            if ($prefixCustom) {
+                $prefix = Str::ensureRight(str_replace('/', '\\', $prefixCustom), '\\');
+            }
+
             $classes = iterator_to_array($this->classFinder->findClasses($prefix));
 
             return collect($classes)
                 ->map(fn(string $className) => Str::removeLeft($className, $prefix))
                 ->dump();
+        }
+
+        if ($context->isOption() && $context->name === 'pkg') {
+            $packages = $this->packageRegistry->getPackagesKeyByName();
+
+            return array_keys($packages);
         }
 
         return null;

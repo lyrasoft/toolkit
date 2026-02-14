@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit\Command;
 
-use Stecman\Component\Symfony\Console\BashCompletion\Completion\CompletionAwareInterface;
-use Stecman\Component\Symfony\Console\BashCompletion\CompletionContext;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Windwalker\Console\CommandInterface;
 use Windwalker\Console\CommandWrapper;
+use Windwalker\Console\CompletionContext;
+use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
@@ -33,7 +33,7 @@ use const Windwalker\Stream\READ_WRITE_CREATE_FROM_BEGIN;
 #[CommandWrapper(
     description: 'Generate entity.ts file.'
 )]
-class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
+class TypeEntityCommand implements CommandInterface, CompletionHandlerInterface
 {
     use CommandPackageResolveTrait;
     use CommandDatabaseTrait;
@@ -108,7 +108,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         $dest = fs(Path::realpath($dest));
 
         if ($ns === '*') {
-            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? 'App\\Entity\\';
+            $baseNs = $this->getBasePrefix($io);
 
             $ns = $baseNs . '\\*';
         }
@@ -123,7 +123,7 @@ class TypeEntityCommand implements CommandInterface, CompletionAwareInterface
         }
 
         if (!class_exists($ns)) {
-            $baseNs = $this->getPackageNamespace($io, 'Entity') ?? 'App\\Entity\\';
+            $baseNs = $this->getBasePrefix($io);
             $ns = $baseNs . $ns;
         }
 
@@ -283,20 +283,29 @@ TS;
         return compact('name', 'types');
     }
 
-    public function completeOptionValues($optionName, CompletionContext $context)
+    public function handleCompletions(CompletionContext $context): ?array
     {
-    }
-
-    public function completeArgumentValues($argumentName, CompletionContext $context)
-    {
-        if ($argumentName === 'ns') {
-            $classes = iterator_to_array($this->classFinder->findClasses('App\\Entity\\'));
+        if ($context->isArgument() && $context->name === 'ns') {
+            $classes = iterator_to_array(
+                $this->classFinder->findClasses($this->getBasePrefix($context->io))
+            );
 
             return collect($classes)
                 ->map(fn(string $className) => (string) Collection::explode('\\', $className)->pop())
                 ->dump();
         }
 
+        if ($context->isOption() && $context->name === 'pkg') {
+            $packages = $this->packageRegistry->getPackagesKeyByName();
+
+            return array_keys($packages);
+        }
+
         return null;
+    }
+
+    public function getBasePrefix(IOInterface $io): string
+    {
+        return $this->getPackageNamespace($io, 'Entity') ?: 'App\\Entity\\';
     }
 }

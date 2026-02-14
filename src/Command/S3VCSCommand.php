@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Lyrasoft\Toolkit\Command;
 
-use Stecman\Component\Symfony\Console\BashCompletion\Completion\CompletionAwareInterface;
-use Stecman\Component\Symfony\Console\BashCompletion\CompletionContext;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Unicorn\Storage\Adapter\S3Storage;
 use Unicorn\Storage\StorageManager;
 use Windwalker\Console\CommandInterface;
 use Windwalker\Console\CommandWrapper;
+use Windwalker\Console\CompletionContext;
+use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\Input\InputOption;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Application\ApplicationInterface;
@@ -19,7 +19,7 @@ use Windwalker\Core\Application\ApplicationInterface;
 #[CommandWrapper(
     description: 'Control S3 Versioning Control System (VCS).',
 )]
-class S3VCSCommand implements CommandInterface, CompletionAwareInterface
+class S3VCSCommand implements CommandInterface, CompletionHandlerInterface
 {
     public const string STATUS_ENABLE = 'enable';
     public const string STATUS_DISABLE = 'disable';
@@ -126,19 +126,9 @@ class S3VCSCommand implements CommandInterface, CompletionAwareInterface
         return 0;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function completeOptionValues($optionName, CompletionContext $context)
+    public function handleCompletions(CompletionContext $context): ?array
     {
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function completeArgumentValues($argumentName, CompletionContext $context)
-    {
-        if ($argumentName === 'status') {
+        if ($context->isArgument() && $context->name === 'status') {
             return self::STATUSES;
         }
 
