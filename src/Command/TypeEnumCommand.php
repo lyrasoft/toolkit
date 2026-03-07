@@ -264,7 +264,7 @@ TS;
         }
 
         if ($context->isOption() && $context->name === 'pkg') {
-            $packages = $this->packageRegistry->getPackagesKeyByName();
+            $packages = $this->packageRegistry->getPackageNames();
 
             return array_keys($packages);
         }
