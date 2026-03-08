@@ -14,6 +14,7 @@ use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
+use Windwalker\Core\DateTime\Chronos;
 use Windwalker\Core\Utilities\ClassFinder;
 use Windwalker\Database\Schema\Ddl\Column;
 use Windwalker\DI\Attributes\Autowire;
@@ -182,27 +183,19 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
                 if ($refType instanceof \ReflectionUnionType) {
                     foreach ($refType->getTypes() as $type) {
-                        $types[] = match ($type->getName()) {
-                            'int', 'float' => 'number',
-                            'bool' => 'boolean',
-                            'array' => 'any[]',
-                            'mixed' => 'any',
-                            default => $type->getName(),
-                        };
+                        $types[] = $this->toTsType($type);
                     }
                 } elseif ($refType instanceof \ReflectionNamedType) {
-                    $types[] = match ($refType->getName()) {
-                        'int', 'float' => 'number',
-                        'bool' => 'boolean',
-                        'array' => 'any[]',
-                        'mixed' => 'any',
-                        default => $refType->getName(),
-                    };
+                    $types[] = $this->toTsType($refType);
                 } else {
                     $types[] = 'any';
                 }
 
-                $type = implode(' | ', $types);
+                if ($refType && $refType->allowsNull()) {
+                    $types[] = 'null';
+                }
+
+                $type = implode(' | ', array_unique($types));
 
                 $props[] = "{$prop->getName()}: {$type}";
             }
@@ -251,6 +244,40 @@ TS;
         }
 
         $indexStream->close();
+    }
+
+    /**
+     * @param  \ReflectionIntersectionType|\ReflectionNamedType  $type
+     *
+     * @return  string
+     */
+    public function toTsType(\ReflectionIntersectionType|\ReflectionNamedType $type): string
+    {
+        $typeName = $type->getName();
+
+        if (is_a($typeName, \DateTimeInterface::class, true)) {
+            return 'string';
+        }
+
+        if (enum_exists($typeName)) {
+            return 'string';
+        }
+
+        if (class_exists($typeName)) {
+            return 'Record<string, any>';
+        }
+
+        return match ($typeName) {
+            // List all php types
+            'int', 'float' => 'number',
+            'bool' => 'boolean',
+            'true' => 'true',
+            'false' => 'false',
+            'array' => 'any[]',
+            'mixed', 'resource' => 'any',
+            'string' => 'string',
+            default => 'any',
+        };
     }
 
     protected function createPropItem(Column $column): array
