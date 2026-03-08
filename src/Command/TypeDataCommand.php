@@ -113,6 +113,8 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
         $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
+        $ns = str_replace('/', '\\', $ns);
+
         $prefix = piping($io->getOption('prefix') ?: 'App\\Data\\')
             ->pipe(fn($v) => str_replace('/', '\\', $v))
             ->pipe(fn($v) => Str::ensureRight($v, '\\'))
@@ -200,7 +202,12 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
                 $props[] = "{$prop->getName()}: {$type}";
             }
 
-            $propsCode = implode(";\n  ", $props) . ';';
+            $propsCode = implode(";\n  ", $props);
+
+            if ($props) {
+                $propsCode .= ';';
+            }
+
             $interface = <<<TS
 export interface {$ref->getShortName()} {
   {$propsCode}
@@ -356,6 +363,7 @@ TS;
 
             return collect($classes)
                 ->map(fn(string $className) => Str::removeLeft($className, $prefix))
+                ->map(fn (string $className) => str_replace('\\', '/', $className))
                 ->dump();
         }
 
