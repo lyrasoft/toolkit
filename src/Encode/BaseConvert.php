@@ -52,11 +52,11 @@ class BaseConvert
         $length = strlen($this->seed);
         $r = $from->mod($length)->toInt();
         $res = $this->seed[$r];
-        $q = $from->dividedBy($length, RoundingMode::FLOOR);
+        $q = $from->dividedBy($length, RoundingMode::Floor);
 
         while (!$q->isEqualTo(0)) {
             $r = $q->mod($length)->toInt();
-            $q = $q->dividedBy($length, RoundingMode::FLOOR);
+            $q = $q->dividedBy($length, RoundingMode::Floor);
             $res = $this->seed[$r] . $res;
         }
 
