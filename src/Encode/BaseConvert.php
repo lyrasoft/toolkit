@@ -67,13 +67,19 @@ class BaseConvert
         $from = BigInteger::of($rawNumber);
         $from = $from->plus($this->getOffset());
 
+        if ($from->isNegative()) {
+            throw new \UnderflowException(
+                'Cannot encode negative numbers.'
+            );
+        }
+
         $length = strlen($this->seed);
-        $r = $from->mod($length)->toInt();
+        $r = $from->mod($length)->toString();
         $res = $this->seed[$r];
         $q = $from->dividedBy($length, RoundingMode::Floor);
 
         while (!$q->isEqualTo(0)) {
-            $r = $q->mod($length)->toInt();
+            $r = $q->mod($length)->toString();
             $q = $q->dividedBy($length, RoundingMode::Floor);
             $res = $this->seed[$r] . $res;
         }
