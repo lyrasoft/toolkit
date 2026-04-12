@@ -34,14 +34,32 @@ class BaseConvert
         $this->setOffset(0);
     }
 
+    public static function encodeString(string $str, string $seed = self::BASE36): string
+    {
+        if ($str === '') {
+            return '';
+        }
+
+        return static::encode(BigInteger::fromBytes($str, false), $seed);
+    }
+
+    public static function decodeString(string $str, string $seed = self::BASE36): string
+    {
+        if ($str === '') {
+            return '';
+        }
+
+        return static::decode($str, $seed)->toBytes(false);
+    }
+
     public static function encode(BigNumber|int|string $rawNumber, string $seed = self::BASE36): string
     {
-        return (new static($seed))->from10($rawNumber);
+        return new static($seed)->from10($rawNumber);
     }
 
     public static function decode(string $number, string $seed = self::BASE36): BigInteger
     {
-        return (new static($seed))->to10($number);
+        return new static($seed)->to10($number);
     }
 
     public function from10(BigNumber|int|string $rawNumber): string
