@@ -14,7 +14,6 @@ use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
-use Windwalker\Core\DateTime\Chronos;
 use Windwalker\Core\Utilities\ClassFinder;
 use Windwalker\Database\Schema\Ddl\Column;
 use Windwalker\DI\Attributes\Autowire;
@@ -25,7 +24,6 @@ use Windwalker\Utilities\Str;
 use Windwalker\Utilities\StrNormalize;
 
 use function Windwalker\collect;
-use function Windwalker\ds;
 use function Windwalker\fs;
 use function Windwalker\get_object_dump_props;
 use function Windwalker\piping;
@@ -117,7 +115,7 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
         $prefix = piping($io->getOption('prefix') ?: 'App\\Data\\')
             ->pipe(fn($v) => str_replace('/', '\\', $v))
-            ->pipe(fn($v) => Str::ensureRight($v, '\\'))
+            ->pipe(fn($v) => Str::ensureEnd($v, '\\'))
             ->value;
 
         if ($ns === '*') {
@@ -177,27 +175,17 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
             $ref = new \ReflectionClass($class);
             $properties = get_object_dump_props($class);
+            $constants = $ref->getReflectionConstants(\ReflectionClassConstant::IS_PUBLIC);
             $props = [];
 
+            foreach ($constants as $constant) {
+                $type = $this->reflectionTypeToString($constant->getType());
+
+                $props[] = "{$constant->getName()}: {$type}";
+            }
+
             foreach ($properties as $prop) {
-                $refType = $prop->getType();
-                $types = [];
-
-                if ($refType instanceof \ReflectionUnionType) {
-                    foreach ($refType->getTypes() as $type) {
-                        $types[] = $this->toTsType($type);
-                    }
-                } elseif ($refType instanceof \ReflectionNamedType) {
-                    $types[] = $this->toTsType($refType);
-                } else {
-                    $types[] = 'any';
-                }
-
-                if ($refType && $refType->allowsNull()) {
-                    $types[] = 'null';
-                }
-
-                $type = implode(' | ', array_unique($types));
+                $type = $this->reflectionTypeToString($prop->getType());
 
                 $props[] = "{$prop->getName()}: {$type}";
             }
@@ -258,7 +246,7 @@ TS;
      *
      * @return  string
      */
-    public function toTsType(\ReflectionIntersectionType|\ReflectionNamedType $type): string
+    public function reflectionTypeToTsType(\ReflectionIntersectionType|\ReflectionNamedType $type): string
     {
         $typeName = $type->getName();
 
@@ -285,6 +273,27 @@ TS;
             'string' => 'string',
             default => 'any',
         };
+    }
+
+    protected function reflectionTypeToString(\ReflectionType|null $refType): string
+    {
+        $types = [];
+
+        if ($refType instanceof \ReflectionUnionType) {
+            foreach ($refType->getTypes() as $type) {
+                $types[] = $this->reflectionTypeToTsType($type);
+            }
+        } elseif ($refType instanceof \ReflectionNamedType) {
+            $types[] = $this->reflectionTypeToTsType($refType);
+        } else {
+            $types[] = 'any';
+        }
+
+        if ($refType && $refType->allowsNull()) {
+            $types[] = 'null';
+        }
+
+        return implode(' | ', array_unique($types));
     }
 
     protected function createPropItem(Column $column): array
@@ -363,7 +372,7 @@ TS;
 
             return collect($classes)
                 ->map(fn(string $className) => Str::removeLeft($className, $prefix))
-                ->map(fn (string $className) => str_replace('\\', '/', $className))
+                ->map(fn(string $className) => str_replace('\\', '/', $className))
                 ->dump();
         }
 
