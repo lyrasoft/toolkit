@@ -20,6 +20,7 @@ use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Path;
 use Windwalker\ORM\ORM;
+use Windwalker\Utilities\Arr;
 use Windwalker\Utilities\Str;
 use Windwalker\Utilities\StrNormalize;
 
@@ -186,12 +187,28 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
             $ref = new \ReflectionClass($class);
             $properties = get_object_dump_props($class);
+            $constructParams = collect($ref->getConstructor()?->getParameters() ?? [])->keyBy('name');
             $props = [];
 
             foreach ($properties as $prop) {
-                $type = $this->reflectionTypeToString($prop->getType());
+                $refType = $prop->getType();
 
-                $props[] = "{$prop->getName()}: {$type}";
+                /** @var ?\ReflectionParameter $param */
+                $param = null;
+                $optional = '';
+
+                // We should manually mark optional to ts now.
+                // if ($prop->isPromoted()) {
+                //     $param = $constructParams[$prop->getName()] ?? null;
+                // }
+                //
+                // if ($param && $param->isOptional() && $refType->allowsNull()) {
+                //     $optional = '?';
+                // }
+
+                $type = $this->reflectionTypeToString($refType);
+
+                $props[] = "{$prop->getName()}{$optional}: {$type}";
             }
 
             $propsCode = implode(";\n  ", $props);
