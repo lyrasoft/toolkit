@@ -186,14 +186,7 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
             $ref = new \ReflectionClass($class);
             $properties = get_object_dump_props($class);
-            $constants = $ref->getReflectionConstants(\ReflectionClassConstant::IS_PUBLIC);
             $props = [];
-
-            foreach ($constants as $constant) {
-                $type = $this->reflectionTypeToString($constant->getType());
-
-                $props[] = "{$constant->getName()}: {$type}";
-            }
 
             foreach ($properties as $prop) {
                 $type = $this->reflectionTypeToString($prop->getType());
