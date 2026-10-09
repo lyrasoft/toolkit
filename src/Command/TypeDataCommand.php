@@ -94,6 +94,13 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
             InputOption::VALUE_REQUIRED,
             'The namespace prefix.',
         );
+
+        $command->addOption(
+            'dto',
+            'T',
+            InputOption::VALUE_NONE,
+            'Use DTO folder.',
+        );
     }
 
     /**
@@ -111,9 +118,13 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
         $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
+        $dto = $io->getOption('dto');
+
         $ns = str_replace('/', '\\', $ns);
 
-        $prefix = piping($io->getOption('prefix') ?: 'App\\Data\\')
+        $defaultPrefix = $dto ? 'App\\DTO' : 'App\\Data\\';
+
+        $prefix = piping($io->getOption('prefix') ?: $defaultPrefix)
             ->pipe(fn($v) => str_replace('/', '\\', $v))
             ->pipe(fn($v) => Str::ensureEnd($v, '\\'))
             ->value;
@@ -355,11 +366,13 @@ TS;
     {
         if ($context->isArgument() && $context->name === 'ns') {
             $package = $this->getPackage($context->io);
+            $dto = $context->getOption('dto');
+            $folder = $dto ? 'DTO' : 'Data';
 
-            $prefix = 'App\\Data\\';
+            $prefix = "App\\{$folder}\\";
 
             if ($package) {
-                $prefix = $package::namespace() . '\\Data\\';
+                $prefix = $package::namespace() . '\\' . $folder . '\\';
             }
 
             $prefixCustom = $context->getOption('prefix');
