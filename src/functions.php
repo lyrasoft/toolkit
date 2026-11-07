@@ -15,13 +15,13 @@ namespace Lyrasoft\Toolkit {
          * @template T of mixed
          *
          * @param  \Closure(int, Duration): T      $callback
-         * @param  Duration|string|int|float       $sleep    Sleep time between tries in seconds (supports decimals,
-         *                                                   default 1.0 s)
-         * @param  Duration|string|int|float|null  $timeout  Maximum total wait time in seconds. If null,
-         *                                                   will wait indefinitely.
+         * @param  Duration|string|int|float       $sleep     Sleep time between tries in seconds (supports decimals,
+         *                                                    default 1.0 s)
+         * @param  Duration|string|int|float|null  $timeout   Maximum total wait time in seconds. If null,
+         *                                                    will wait indefinitely.
          *
-         * @return T
-         * @throws TimeException
+         * @return  T
+         * @throws  TimeException
          */
         function wait_until_truthy(
             \Closure $callback,

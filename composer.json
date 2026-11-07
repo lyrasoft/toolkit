@@ -21,13 +21,13 @@
     "minimum-stability": "beta",
     "require": {
         "php": ">=8.4.6",
-        "windwalker/core": "^4.2",
         "symfony/polyfill-time": "^1.42"
     },
     "require-dev": {
         "brick/math": ">=0.14.0 <0.21.0||^1.0",
         "windwalker/framework": "dev-master",
-        "windwalker/core": "dev-master"
+        "windwalker/core": "dev-master",
+        "friendsofphp/php-cs-fixer": "^3.95"
     },
     "extra": {
         "windwalker":{

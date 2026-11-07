@@ -14,7 +14,6 @@ use Windwalker\Core\Attributes\ConfigModule;
 use Windwalker\Core\Package\AbstractPackage;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Path;
-
 use Windwalker\Utilities\Attributes\AttributesAccessor;
 
 use function Windwalker\fs;

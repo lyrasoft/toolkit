@@ -29,7 +29,7 @@ class LangImportCommand implements CommandInterface, InteractInterface
     protected IOInterface $io;
 
     /**
-     * @var string[]
+     * @var  string[]
      */
     protected array $allowExtensions = ['xlsx', 'xls', 'csv'];
 
@@ -62,7 +62,7 @@ class LangImportCommand implements CommandInterface, InteractInterface
     {
         if (!$io->getArgument('lang')) {
             $languages = Filesystem::folders(WINDWALKER_LANGUAGES)
-                ->map(fn (FileObject $folder) => $folder->getBasename())
+                ->map(fn(FileObject $folder) => $folder->getBasename())
                 ->toArray();
 
             $qn = new ChoiceQuestion(
@@ -82,7 +82,7 @@ class LangImportCommand implements CommandInterface, InteractInterface
      *
      * @param  IOInterface  $io
      *
-     * @return  int Return 0 is success, 1-255 is failure.
+     * @return  int  Return 0 is success, 1-255 is failure.
      */
     public function execute(IOInterface $io): int
     {

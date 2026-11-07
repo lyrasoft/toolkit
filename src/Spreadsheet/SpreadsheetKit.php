@@ -17,12 +17,12 @@ class SpreadsheetKit
             'php_spreadsheet' => static::createAfterCheckDependency(
                 Spreadsheet::class,
                 'phpoffice/phpspreadsheet',
-                static fn () => new PhpSpreadsheetWriter($options)
+                static fn() => new PhpSpreadsheetWriter($options)
             ),
             'spout', 'openspout' => static::createAfterCheckDependency(
                 \OpenSpout\Writer\AbstractWriter::class,
                 'openspout/openspout',
-                static fn () => new SpoutWriter($options)
+                static fn() => new SpoutWriter($options)
             ),
         };
     }
@@ -33,7 +33,7 @@ class SpreadsheetKit
             'php_spreadsheet' => static::createAfterCheckDependency(
                 Spreadsheet::class,
                 'phpoffice/phpspreadsheet',
-                static fn () => new PhpSpreadsheetReader($options)
+                static fn() => new PhpSpreadsheetReader($options)
             ),
         };
     }

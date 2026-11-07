@@ -14,9 +14,7 @@ class ReaderRowIterator implements \IteratorAggregate
 
     protected bool $rowToValue = true;
 
-    public function __construct(protected \Closure $runner)
-    {
-    }
+    public function __construct(protected \Closure $runner) {}
 
     public function getIterator(): Traversable
     {

@@ -116,7 +116,7 @@ abstract class AbstractSpreadsheetWriter
     {
         $index = array_find_key(
             $this->columnMapping[$this->getActiveSheetIndex()],
-            fn ($col) => $col[0] === $alias
+            fn($col) => $col[0] === $alias
         );
 
         if ($index === false) {
@@ -130,7 +130,7 @@ abstract class AbstractSpreadsheetWriter
      * @param  int            $row
      * @param  callable|null  $handler
      *
-     * @return object
+     * @return  object
      */
     public function useRow(int $row, ?callable $handler = null): object
     {
@@ -212,7 +212,7 @@ abstract class AbstractSpreadsheetWriter
     abstract protected function getRowObject(int $rowIndex): object;
 
     /**
-     * @return int
+     * @return  int
      */
     public function getCurrentRowIndex(): int
     {
@@ -297,7 +297,7 @@ abstract class AbstractSpreadsheetWriter
     abstract protected function defaultCreateDriver(): object;
 
     /**
-     * @return \Closure
+     * @return  \Closure
      */
     public function getCreateDriverHandler(): \Closure
     {
@@ -317,7 +317,7 @@ abstract class AbstractSpreadsheetWriter
     }
 
     /**
-     * @return \Closure|null
+     * @return  \Closure|null
      */
     public function getPreprocessHandler(): ?\Closure
     {
@@ -409,7 +409,7 @@ abstract class AbstractSpreadsheetWriter
         // Redirect output to a client’s web browser (Xlsx)
         $response = HeaderHelper::prepareAttachmentHeaders(new Response(), $filename);
 
-        (new Output())->sendHeaders($response);
+        new Output()->sendHeaders($response);
 
         $this->save('php://output', $format);
         die;

@@ -261,7 +261,7 @@ class PhpSpreadsheetReader extends AbstractSpreadsheetReader
      *
      * @return  Worksheet
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
      */
     public function getWorksheet(int|string|null $sheet): Worksheet
     {

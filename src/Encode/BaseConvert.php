@@ -131,7 +131,7 @@ class BaseConvert
     }
 
     /**
-     * @return string
+     * @return  string
      */
     public function getSeed(): string
     {
@@ -160,7 +160,7 @@ class BaseConvert
     }
 
     /**
-     * @return BigInteger
+     * @return  BigInteger
      */
     public function getOffset(): BigInteger
     {

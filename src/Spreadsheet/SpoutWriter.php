@@ -9,10 +9,10 @@ use MyCLabs\Enum\Enum;
 use OpenSpout\Common\Entity\Cell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\AbstractWriterMultiSheets;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use OpenSpout\Writer;
 use Windwalker\Http\Response\AttachmentResponse;
 use Windwalker\Utilities\Arr;
+
 use function Windwalker\value;
 
 /**
@@ -20,21 +20,21 @@ use function Windwalker\value;
  *
  * @extends AbstractSpreadsheetWriter<Writer\AbstractWriter>
  *
- * @method Writer\AbstractWriter getDriver()
- * @method ColumnStyle addColumn(string $alias, string $title = '', array $options = [])
- * @method ColumnStyle setColumn(string|int $col, string $alias, string $title = '', array $options = [])
- * @method Row addRow(?callable $handler = null)
- * @method Cell setRowCell(string $alias, mixed $value, ?string $format = null)
+ * @method  Writer\AbstractWriter  getDriver()
+ * @method  ColumnStyle            addColumn(string $alias, string $title = '', array $options = [])
+ * @method  ColumnStyle            setColumn(string|int $col, string $alias, string $title = '', array $options = [])
+ * @method  Row                    addRow(?callable $handler = null)
+ * @method  Cell                   setRowCell(string $alias, mixed $value, ?string $format = null)
  */
 class SpoutWriter extends AbstractSpreadsheetWriter
 {
     /**
-     * @var array<array{ title: string, alias: string, index: int, width: int }>
+     * @var  array<array{ title: string, alias: string, index: int, width: int }>
      */
     protected array $columnItems = [];
 
     /**
-     * @var Row[]
+     * @var  Row[]
      */
     protected array $rows = [];
 
@@ -64,7 +64,7 @@ class SpoutWriter extends AbstractSpreadsheetWriter
             if (is_string($indexOrName)) {
                 $currentSheet = Arr::findFirst(
                     $sheets,
-                    fn (Writer\Common\Entity\Sheet $sheet) => $sheet->getName() === $indexOrName
+                    fn(Writer\Common\Entity\Sheet $sheet) => $sheet->getName() === $indexOrName
                 );
 
                 if ($currentSheet) {

@@ -42,7 +42,7 @@ class SeederRenameCommand implements CommandInterface
 
                 $file->moveTo($file->getPath() . '/' . $newName);
 
-                $io->writeln("Renamed: " . $file->getFilename() . " to " . $newName);
+                $io->writeln('Renamed: ' . $file->getFilename() . ' to ' . $newName);
             }
         }
 

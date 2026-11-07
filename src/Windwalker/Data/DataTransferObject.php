@@ -11,7 +11,5 @@ use Windwalker\Data\AbstractDTO;
  */
 class DataTransferObject extends AbstractDTO
 {
-    protected function configure(object $data): void
-    {
-    }
+    protected function configure(object $data): void {}
 }

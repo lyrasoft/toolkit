@@ -61,7 +61,7 @@ trait ApiAuthTrait
      *
      * @return  string
      *
-     * @throws \DateMalformedStringException
+     * @throws  \DateMalformedStringException
      */
     public function createAuthJWT(
         ApiUserSecretInterface $user,

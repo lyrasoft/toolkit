@@ -20,7 +20,6 @@ use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Path;
 use Windwalker\ORM\ORM;
-use Windwalker\Utilities\Arr;
 use Windwalker\Utilities\Str;
 use Windwalker\Utilities\StrNormalize;
 
@@ -41,11 +40,11 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
     protected IOInterface $io;
 
     public function __construct(
-        #[Autowire] protected ClassFinder $classFinder,
+        #[Autowire]
+        protected ClassFinder $classFinder,
         protected ConsoleApplication $app,
         protected ORM $orm,
-    ) {
-    }
+    ) {}
 
     /**
      * configure
@@ -109,7 +108,7 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
      *
      * @param  IOInterface  $io
      *
-     * @return  int Return 0 is success, 1-255 is failure.
+     * @return  int  Return 0 is success, 1-255 is failure.
      */
     public function execute(IOInterface $io): int
     {
@@ -296,7 +295,7 @@ TS;
         };
     }
 
-    protected function reflectionTypeToString(\ReflectionType|null $refType): string
+    protected function reflectionTypeToString(?\ReflectionType $refType): string
     {
         $types = [];
 

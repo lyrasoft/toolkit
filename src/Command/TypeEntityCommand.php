@@ -41,11 +41,11 @@ class TypeEntityCommand implements CommandInterface, CompletionHandlerInterface
     protected IOInterface $io;
 
     public function __construct(
-        #[Autowire] protected ClassFinder $classFinder,
+        #[Autowire]
+        protected ClassFinder $classFinder,
         protected ConsoleApplication $app,
         protected ORM $orm,
-    ) {
-    }
+    ) {}
 
     /**
      * configure
@@ -97,7 +97,7 @@ class TypeEntityCommand implements CommandInterface, CompletionHandlerInterface
      *
      * @param  IOInterface  $io
      *
-     * @return  int Return 0 is success, 1-255 is failure.
+     * @return  int  Return 0 is success, 1-255 is failure.
      */
     public function execute(IOInterface $io): int
     {

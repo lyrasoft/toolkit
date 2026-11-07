@@ -27,9 +27,7 @@ use Windwalker\DI\ServiceProviderInterface;
  */
 class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
 {
-    public function __construct(protected ApplicationInterface $app)
-    {
-    }
+    public function __construct(protected ApplicationInterface $app) {}
 
     public function install(PackageInstaller $installer): void
     {

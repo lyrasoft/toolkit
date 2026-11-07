@@ -30,9 +30,7 @@ class S3VCSCommand implements CommandInterface, CompletionHandlerInterface
         self::STATUS_VIEW,
     ];
 
-    public function __construct(protected ApplicationInterface $app, protected StorageManager $storageManager)
-    {
-    }
+    public function __construct(protected ApplicationInterface $app, protected StorageManager $storageManager) {}
 
     public function configure(Command $command): void
     {
@@ -96,8 +94,8 @@ class S3VCSCommand implements CommandInterface, CompletionHandlerInterface
 
             $currentStatus = $result['Status'] ?? 'Disabled';
             $statusColored = $currentStatus === 'Enabled'
-                ? "<info>ENABLED</info>"
-                : "<comment>DISABLED</comment>";
+                ? '<info>ENABLED</info>'
+                : '<comment>DISABLED</comment>';
 
             $io->writeln("S3 VCS is currently $statusColored on bucket <info>$bucket</info>.");
             $io->writeln("- Endpoint: <info>{$client->getEndpoint()}</info>.");
@@ -116,8 +114,8 @@ class S3VCSCommand implements CommandInterface, CompletionHandlerInterface
         );
 
         $statusColored = $status === self::STATUS_ENABLE
-            ? "<info>ENABLED</info>"
-            : "<comment>DISABLED</comment>";
+            ? '<info>ENABLED</info>'
+            : '<comment>DISABLED</comment>';
 
         $io->writeln("<info>[OK]</info> S3 VCS $statusColored applied to bucket <info>$bucket</info>.");
         $io->writeln("- Endpoint: <info>{$client->getEndpoint()}</info>.");

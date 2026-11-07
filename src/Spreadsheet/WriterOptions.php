@@ -16,6 +16,5 @@ class WriterOptions
         public string $title = '',
         public string $description = '',
         public string $format = '',
-    ) {
-    }
+    ) {}
 }

@@ -58,7 +58,7 @@ abstract class AbstractDTO implements \JsonSerializable, DumpableInterface
     abstract protected function configure(object $data): void;
 
     /**
-     * @return object|T
+     * @return  object|T
      */
     public function getData(): object
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lyrasoft\Toolkit\Legacy\Excel;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -323,8 +325,8 @@ class ExcelExporter
      *
      * @return  string
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Writer\Exception
      *
      * @since  1.5.13
      */
@@ -350,8 +352,8 @@ class ExcelExporter
      *
      * @return  void
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Writer\Exception
      *
      * @since  1.5.13
      */
@@ -379,9 +381,9 @@ class ExcelExporter
      *
      * @return  void
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
-     * @throws \Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws  \Exception
      * @since  1.5.13
      */
     public function download(?string $filename = null, array $options = [], string $format = 'xlsx'): void
@@ -399,7 +401,7 @@ class ExcelExporter
         // Redirect output to a client’s web browser (Xlsx)
         $response = HeaderHelper::prepareAttachmentHeaders(new Response(), $filename);
 
-        (new Output())->sendHeaders($response);
+        new Output()->sendHeaders($response);
 
         $this->save('php://output', $options, $format);
         die;
@@ -413,8 +415,8 @@ class ExcelExporter
      *
      * @return  IWriter
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
-     * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Writer\Exception
      *
      * @since  1.5.13
      */
@@ -432,7 +434,7 @@ class ExcelExporter
      *
      * @return  Spreadsheet
      *
-     * @throws \PhpOffice\PhpSpreadsheet\Exception
+     * @throws  \PhpOffice\PhpSpreadsheet\Exception
      *
      * @since  1.5.18
      */

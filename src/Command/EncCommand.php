@@ -10,7 +10,6 @@ use Windwalker\Console\CommandInterface;
 use Windwalker\Console\CommandWrapper;
 use Windwalker\Console\IOInterface;
 use Windwalker\Crypt\SecretToolkit;
-use Windwalker\Crypt\Symmetric\CipherInterface;
 use Windwalker\Crypt\Symmetric\SodiumCipher;
 
 /**
@@ -23,9 +22,7 @@ use Windwalker\Crypt\Symmetric\SodiumCipher;
 )]
 class EncCommand implements CommandInterface
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * configure
@@ -48,7 +45,7 @@ class EncCommand implements CommandInterface
      *
      * @param  IOInterface  $io
      *
-     * @return  int Return 0 is success, 1-255 is failure.
+     * @return  int  Return 0 is success, 1-255 is failure.
      */
     public function execute(IOInterface $io): int
     {

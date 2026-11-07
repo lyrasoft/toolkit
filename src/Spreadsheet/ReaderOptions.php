@@ -12,6 +12,5 @@ class ReaderOptions
 
     public function __construct(
         public string $tempPath = WINDWALKER_TEMP,
-    ) {
-    }
+    ) {}
 }

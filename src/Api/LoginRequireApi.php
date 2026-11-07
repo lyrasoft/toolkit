@@ -16,9 +16,7 @@ class LoginRequireApi implements ContainerAttributeInterface
 
     public static ?\Closure $loginRequireHandler = null;
 
-    public function __construct(public array $options = [])
-    {
-    }
+    public function __construct(public array $options = []) {}
 
     public function __invoke(AttributeHandler $handler): callable
     {

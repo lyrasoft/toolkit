@@ -16,8 +16,8 @@ trait ApiControllerTrait
     protected string $taskParam = 'task';
 
     /**
-     * @throws ContainerExceptionInterface
-     * @throws \ReflectionException
+     * @throws  ContainerExceptionInterface
+     * @throws  \ReflectionException
      */
     public function index(AppContext $app): mixed
     {
