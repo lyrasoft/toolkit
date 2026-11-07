@@ -14,18 +14,17 @@ use Windwalker\Console\CompletionHandlerInterface;
 use Windwalker\Console\IOInterface;
 use Windwalker\Core\Command\CommandPackageResolveTrait;
 use Windwalker\Core\Console\ConsoleApplication;
-use Windwalker\Core\DateTime\Chronos;
 use Windwalker\Core\Utilities\ClassFinder;
 use Windwalker\Database\Schema\Ddl\Column;
 use Windwalker\DI\Attributes\Autowire;
 use Windwalker\Filesystem\FileObject;
 use Windwalker\Filesystem\Path;
 use Windwalker\ORM\ORM;
+use Windwalker\Utilities\Arr;
 use Windwalker\Utilities\Str;
 use Windwalker\Utilities\StrNormalize;
 
 use function Windwalker\collect;
-use function Windwalker\ds;
 use function Windwalker\fs;
 use function Windwalker\get_object_dump_props;
 use function Windwalker\piping;
@@ -96,6 +95,13 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
             InputOption::VALUE_REQUIRED,
             'The namespace prefix.',
         );
+
+        $command->addOption(
+            'dto',
+            'T',
+            InputOption::VALUE_NONE,
+            'Use DTO folder.',
+        );
     }
 
     /**
@@ -113,11 +119,15 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
         $dest = $io->getArgument('dest') ?: static::getDefaultDest();
         $dest = fs(Path::realpath($dest));
 
+        $dto = $io->getOption('dto');
+
         $ns = str_replace('/', '\\', $ns);
 
-        $prefix = piping($io->getOption('prefix') ?: 'App\\Data\\')
+        $defaultPrefix = $dto ? 'App\\DTO' : 'App\\Data\\';
+
+        $prefix = piping($io->getOption('prefix') ?: $defaultPrefix)
             ->pipe(fn($v) => str_replace('/', '\\', $v))
-            ->pipe(fn($v) => Str::ensureRight($v, '\\'))
+            ->pipe(fn($v) => Str::ensureEnd($v, '\\'))
             ->value;
 
         if ($ns === '*') {
@@ -177,29 +187,28 @@ class TypeDataCommand implements CommandInterface, CompletionHandlerInterface
 
             $ref = new \ReflectionClass($class);
             $properties = get_object_dump_props($class);
+            $constructParams = collect($ref->getConstructor()?->getParameters() ?? [])->keyBy('name');
             $props = [];
 
             foreach ($properties as $prop) {
                 $refType = $prop->getType();
-                $types = [];
 
-                if ($refType instanceof \ReflectionUnionType) {
-                    foreach ($refType->getTypes() as $type) {
-                        $types[] = $this->toTsType($type);
-                    }
-                } elseif ($refType instanceof \ReflectionNamedType) {
-                    $types[] = $this->toTsType($refType);
-                } else {
-                    $types[] = 'any';
-                }
+                /** @var ?\ReflectionParameter $param */
+                $param = null;
+                $optional = '';
 
-                if ($refType && $refType->allowsNull()) {
-                    $types[] = 'null';
-                }
+                // We should manually mark optional to ts now.
+                // if ($prop->isPromoted()) {
+                //     $param = $constructParams[$prop->getName()] ?? null;
+                // }
+                //
+                // if ($param && $param->isOptional() && $refType->allowsNull()) {
+                //     $optional = '?';
+                // }
 
-                $type = implode(' | ', array_unique($types));
+                $type = $this->reflectionTypeToString($refType);
 
-                $props[] = "{$prop->getName()}: {$type}";
+                $props[] = "{$prop->getName()}{$optional}: {$type}";
             }
 
             $propsCode = implode(";\n  ", $props);
@@ -258,7 +267,7 @@ TS;
      *
      * @return  string
      */
-    public function toTsType(\ReflectionIntersectionType|\ReflectionNamedType $type): string
+    public function reflectionTypeToTsType(\ReflectionIntersectionType|\ReflectionNamedType $type): string
     {
         $typeName = $type->getName();
 
@@ -285,6 +294,27 @@ TS;
             'string' => 'string',
             default => 'any',
         };
+    }
+
+    protected function reflectionTypeToString(\ReflectionType|null $refType): string
+    {
+        $types = [];
+
+        if ($refType instanceof \ReflectionUnionType) {
+            foreach ($refType->getTypes() as $type) {
+                $types[] = $this->reflectionTypeToTsType($type);
+            }
+        } elseif ($refType instanceof \ReflectionNamedType) {
+            $types[] = $this->reflectionTypeToTsType($refType);
+        } else {
+            $types[] = 'any';
+        }
+
+        if ($refType && $refType->allowsNull()) {
+            $types[] = 'null';
+        }
+
+        return implode(' | ', array_unique($types));
     }
 
     protected function createPropItem(Column $column): array
@@ -346,11 +376,13 @@ TS;
     {
         if ($context->isArgument() && $context->name === 'ns') {
             $package = $this->getPackage($context->io);
+            $dto = $context->getOption('dto');
+            $folder = $dto ? 'DTO' : 'Data';
 
-            $prefix = 'App\\Data\\';
+            $prefix = "App\\{$folder}\\";
 
             if ($package) {
-                $prefix = $package::namespace() . '\\Data\\';
+                $prefix = $package::namespace() . '\\' . $folder . '\\';
             }
 
             $prefixCustom = $context->getOption('prefix');
@@ -363,7 +395,7 @@ TS;
 
             return collect($classes)
                 ->map(fn(string $className) => Str::removeLeft($className, $prefix))
-                ->map(fn (string $className) => str_replace('\\', '/', $className))
+                ->map(fn(string $className) => str_replace('\\', '/', $className))
                 ->dump();
         }
 
