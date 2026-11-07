@@ -23,6 +23,11 @@
         "php": ">=8.4.6",
         "windwalker/core": "^4.2"
     },
+    "require-dev": {
+        "brick/math": ">=0.14.0 <0.21.0||^1.0",
+        "windwalker/framework": "dev-master",
+        "windwalker/core": "dev-master"
+    },
     "extra": {
         "windwalker":{
             "packages": [

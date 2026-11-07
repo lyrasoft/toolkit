@@ -63,6 +63,6 @@ class ToolkitPackage extends AbstractPackage implements ServiceProviderInterface
         }
 
         $container->getAttributesResolver()
-            ->registerAttribute(LoginRequireApi::class, AttributeType::METHODS);
+            ->registerAttribute(LoginRequireApi::class, AttributeType::CALLABLE);
     }
 }
